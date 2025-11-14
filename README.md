@@ -1,6 +1,10 @@
 <div align="center">
 
 # 📡 SmaRTC
+<p align="center">
+  <img src="https://img.shields.io/badge/Author-Azizi%20Mounir-blue?style=for-the-badge" alt="Author: Azizi Mounir">
+  <img src="https://img.shields.io/badge/Phone-%2B216%2027%20774%20075%20🇹🇳-006400?style=for-the-badge" alt="Phone: +21627774075">
+</p>
 
 ### *Smart Real-Time Communication — Built for Today, Styled Like Yesterday*
 
@@ -235,3 +239,6 @@ This project was built with precision, debugged with patience, and deployed with
 ⭐ **Star this repo** if SmaRTC helped you build something cool!
 
 </div>
+---
+
+
