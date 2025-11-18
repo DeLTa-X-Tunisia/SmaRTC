@@ -12,14 +12,30 @@ dotnet add package SmaRTC.SDK
 Install-Package SmaRTC.SDK
 ```
 
+### Copier les fichiers
+
+Ou copiez simplement `SmaRTCSimple.cs` dans votre projet.
+
+**🎯 [Voir QuickStart.cs](examples/QuickStart.cs)**
+
 ### Manuellement
 
 1. Téléchargez la DLL depuis [Releases](https://github.com/DeLTa-X-Tunisia/SmaRTC/releases)
 2. Ajoutez la référence à votre projet
 
-## 🚀 Quick Start (5 minutes)
+## 🚀 Quick Start (3 lignes)
 
-### 1. Initialiser le SDK
+### Wrapper Simplifié (Recommandé)
+
+```csharp
+using SmaRTC.Client;
+
+var client = new SmaRTCSimple();
+await client.LoginAsync("alice", "password123");
+var session = await client.StartCallAsync("Réunion .NET");
+```
+
+### SDK Complet
 
 ```csharp
 using SmaRTC.SDK;

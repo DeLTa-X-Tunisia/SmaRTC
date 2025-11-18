@@ -209,8 +209,8 @@ The platform includes a comprehensive PowerShell test script that validates the 
 | **Java** ☕ | Enterprise, Android | ✅ Production | [QuickStart.java](sdk/java/examples/QuickStart.java) | [README](sdk/java/README.md) |
 | **Flutter** 🎯 | iOS/Android/Web | ✅ Production | [exemple](sdk/flutter/example/) | [README](sdk/flutter/README.md) |
 | **JavaScript** 🟨 | Web, Node.js | ✅ Production | [simple-demo.html](sdk/js/examples/simple-demo.html) | [README](sdk/js/README.md) |
-| **C#** 💜 | .NET, Unity | 🔄 En cours | - | [README](sdk/csharp/README.md) |
-| **Swift** 🍎 | iOS, macOS | 📋 Planifié | - | - |
+| **C#** 💜 | .NET, Unity | ✅ Production | [QuickStart.cs](sdk/csharp/examples/QuickStart.cs) | [README](sdk/csharp/README.md) |
+| **Swift** 🍎 | iOS, macOS | ✅ Production | [QuickStart.swift](sdk/swift/examples/QuickStart.swift) | [README](sdk/swift/README.md) |
 
 ### 🎯 Quick Start Exemple (3 lignes de code)
 

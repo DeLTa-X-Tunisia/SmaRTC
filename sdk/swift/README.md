@@ -25,9 +25,21 @@ pod 'SmaRTCSDK', '~> 1.0'
 1. Téléchargez le framework depuis [Releases](https://github.com/DeLTa-X-Tunisia/SmaRTC/releases)
 2. Glissez-déposez `SmaRTCSDK.framework` dans votre projet
 
-## 🚀 Quick Start (5 minutes)
+## 🚀 Quick Start (3 lignes)
 
-### 1. Initialiser le SDK
+### Wrapper Simplifié (Recommandé)
+
+```swift
+import SmaRTC
+
+let client = SmaRTCSimple()
+try await client.login(username: "alice", password: "password123")
+let session = try await client.startCall(roomName: "Réunion iOS")
+```
+
+**🎯 [Voir le code complet](examples/QuickStart.swift)**
+
+### SDK Complet
 
 ```swift
 import SmaRTCSDK
