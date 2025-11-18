@@ -4,12 +4,18 @@ Bienvenue dans l'écosystème des SDKs SmaRTC ! Cette collection vous permet d'i
 
 ## 📦 SDKs Disponibles
 
-| SDK | Langage | Plateforme | Status | Utilisation |
+| SDK | Langage | Plateforme | Status | Cas d'usage |
 |-----|---------|------------|--------|-------------|
-| [**Flutter**](./flutter/) | Dart | Mobile (iOS/Android), Web | ✅ **Production Ready** | Apps cross-platform |
-| [**JavaScript**](./js/) | JavaScript/TypeScript | Web, Node.js | 🚧 Beta | Web apps, PWA |
-| [**C#**](./csharp/) | C# | .NET 6+, Unity | 🔄 En développement | Apps Windows, jeux |
-| [**Swift**](./swift/) | Swift | iOS, macOS | 📋 Planifié | Apps Apple natives |
+| [**Flutter**](./flutter/) | Dart | Mobile (iOS/Android), Web | ✅ **Production** | Apps cross-platform |
+| [**JavaScript**](./js/) | JavaScript | Web, Node.js | ✅ **Production** | Web apps, PWA |
+| [**TypeScript**](./typescript/) | TypeScript | Web, Node.js | ✅ **Production** | React, Angular, Vue |
+| [**Python**](./python/) | Python 3.8+ | Backend, IA, Scripts | ✅ **Production** | Bots, dashboards, prototypes |
+| [**Kotlin**](./kotlin/) | Kotlin | Android | 🚧 **Beta** | Apps Android natives |
+| [**C#**](./csharp/) | C# | .NET 6+, Unity | 🔄 **En cours** | Apps Windows, jeux |
+| [**Swift**](./swift/) | Swift | iOS, macOS | 📋 **Planifié** | Apps Apple natives |
+| [**Go**](./go/) | Go | Backend, Microservices | 📋 **Planifié** | Serveurs temps réel |
+| [**Rust**](./rust/) | Rust | Native, Edge | 📋 **Planifié** | Performance, sécurité |
+| [**Java**](./java/) | Java | Enterprise, Android | 📋 **Planifié** | Intégration entreprise |
 
 ## ⚡ Quick Start (10 secondes)
 
