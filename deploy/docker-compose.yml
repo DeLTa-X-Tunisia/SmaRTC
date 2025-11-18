@@ -16,6 +16,8 @@ services:
     build:
       context: ../api
       dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -26,6 +28,8 @@ services:
     build:
       context: ../signal-server
       dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
     networks:
       - tunrtc-net
 
@@ -44,14 +48,16 @@ services:
 
   postgres:
     image: postgres:latest
+    ports:
+      - "5432:5432"
     environment:
-      POSTGRES_DB: tunrtc
-      POSTGRES_USER: user
+      POSTGRES_DB: smartc
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "2012704"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d tunrtc" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d smartc" ]
       interval: 10s
       timeout: 5s
       retries: 5

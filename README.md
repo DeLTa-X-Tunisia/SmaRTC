@@ -35,7 +35,8 @@ Whether you're building a video conferencing app, a collaborative workspace, or 
 - 🎥 **Session Management** — Create, join, and manage communication sessions with a clean RESTful API.
 - 🌐 **STUN/TURN Server** — Integrated Coturn for NAT traversal. Even firewalls can't stop you.
 - 🐳 **Docker-First** — 12 microservices, one command. `docker compose up` and you're live.
-- 📚 **Client SDKs** — JavaScript, C#, and Swift SDKs to get you coding, not configuring.
+- 📚 **Client SDKs** — JavaScript, C#, Swift, and **Flutter** SDKs to get you coding, not configuring.
+- 📱 **Flutter SDK** — Complete native mobile SDK with pre-built UI components for video calls.
 - 🧪 **Battle-Tested** — End-to-end test suite included. Every endpoint validated, every claim verified.
 
 ---
@@ -200,8 +201,51 @@ Dive deeper into the platform with our comprehensive docs:
 
 ---
 
+## 📱 Flutter SDK
+
+SmaRTC now includes a **complete Flutter SDK** for building native mobile video calling apps!
+
+### Features
+- 🎨 **Pre-built UI Components** — Ready-to-use call screens and widgets
+- 📞 **WebRTC Integration** — Full peer-to-peer calling support
+- 🔐 **JWT Authentication** — Seamless auth with the backend
+- 🎥 **Session Management** — Create and join sessions easily
+- 📡 **SignalR Support** — Real-time signaling built-in
+- 📱 **Multi-platform** — Android, iOS, and Web support
+
+### Quick Start
+
+```dart
+// Initialize the SDK
+await SmaRTCClient.initialize(
+  SmaRTCConfig(
+    apiUrl: 'http://localhost:8080',
+    signalServerUrl: 'http://localhost:5001/signalhub',
+  ),
+);
+
+// Login
+await SmaRTCClient.instance.auth.login(
+  username: 'john_doe',
+  password: 'password',
+);
+
+// Join a call
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => CallScreen(sessionId: 1),
+  ),
+);
+```
+
+📚 **[Full Flutter SDK Documentation →](sdk/flutter/README.md)**
+
+---
+
 ## 🛠️ Built With
 
+### Backend
 - **[.NET 9](https://dotnet.microsoft.com/)** — The backend framework that keeps on giving
 - **[ASP.NET Core](https://docs.microsoft.com/aspnet/core)** — RESTful APIs made easy
 - **[Entity Framework Core](https://docs.microsoft.com/ef/core/)** — ORM with migrations
@@ -210,6 +254,12 @@ Dive deeper into the platform with our comprehensive docs:
 - **[Redis](https://redis.io/)** — Blazing-fast in-memory cache
 - **[Docker](https://www.docker.com/)** — Containerization for the win
 - **[Coturn](https://github.com/coturn/coturn)** — STUN/TURN server for NAT traversal
+
+### Flutter SDK
+- **[Flutter](https://flutter.dev/)** — Beautiful native apps from a single codebase
+- **[flutter_webrtc](https://pub.dev/packages/flutter_webrtc)** — WebRTC for Flutter
+- **[signalr_netcore](https://pub.dev/packages/signalr_netcore)** — SignalR client
+- **[Provider](https://pub.dev/packages/provider)** — State management
 
 ---
 
