@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmaRTC Simple - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        input {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .video-container {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .btn-control {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .btn-mute { background: #4CAF50; color: white; }
+        .btn-mute.active { background: #f44336; }
+        
+        .btn-camera { background: #2196F3; color: white; }
+        .btn-camera.active { background: #f44336; }
+        
+        .btn-leave { background: #f44336; color: white; }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 SmaRTC Simple Demo</h1>
+        
+        <div id="status" class="status hidden"></div>
+        
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form">
+            <input type="text" id="username" placeholder="Username" value="demo">
+            <input type="password" id="password" placeholder="Password" value="Demo123!">
+            <input type="text" id="callName" placeholder="Nom de l'appel" value="Demo Call">
+            <button class="btn-primary" onclick="startCall()">Démarrer l'appel</button>
+        </div>
+        
+        <!-- Video Container -->
+        <div id="videoContainer" class="video-container">
+            <div class="video-grid">
+                <div class="video-wrapper">
+                    <video id="localVideo" autoplay muted></video>
+                    <div class="video-label">Vous</div>
+                </div>
+                <div id="remoteVideos"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn-control btn-mute" onclick="toggleMute()" title="Mute/Unmute">
+                    🎤
+                </button>
+                <button class="btn-control btn-camera" onclick="toggleCamera()" title="Camera On/Off">
+                    📹
+                </button>
+                <button class="btn-control btn-leave" onclick="leaveCall()" title="Quitter">
+                    📞
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SmaRTCSimple } from './smartc-simple.js';
+
+        let smartc;
+        let isMuted = false;
+        let isCameraOff = false;
+
+        // Initialiser
+        window.addEventListener('DOMContentLoaded', () => {
+            smartc = new SmaRTCSimple();
+            
+            // Écouter les événements
+            smartc.onLocalStream((stream) => {
+                const video = document.getElementById('localVideo');
+                video.srcObject = stream;
+                showStatus('Flux local initialisé', 'success');
+            });
+
+            smartc.onRemoteStream((userId, stream) => {
+                addRemoteVideo(userId, stream);
+                showStatus(`${userId} a rejoint l'appel`, 'success');
+            });
+
+            smartc.onUserLeft((userId) => {
+                removeRemoteVideo(userId);
+                showStatus(`${userId} a quitté l'appel`, 'success');
+            });
+
+            smartc.onError((error) => {
+                showStatus(`Erreur: ${error.message}`, 'error');
+            });
+        });
+
+        // Démarrer un appel
+        window.startCall = async function() {
+            try {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const callName = document.getElementById('callName').value;
+
+                showStatus('Connexion...', 'success');
+                await smartc.login(username, password);
+
+                showStatus('Création de l\'appel...', 'success');
+                const sessionId = await smartc.startCall(callName);
+
+                showStatus(`Appel démarré ! (Session ${sessionId})`, 'success');
+                
+                // Afficher l'interface vidéo
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('videoContainer').style.display = 'flex';
+            } catch (error) {
+                showStatus(error.message, 'error');
+                console.error(error);
+            }
+        };
+
+        // Toggle mute
+        window.toggleMute = async function() {
+            try {
+                await smartc.toggleMicrophone();
+                isMuted = !isMuted;
+                const btn = document.querySelector('.btn-mute');
+                btn.classList.toggle('active', isMuted);
+                btn.textContent = isMuted ? '🔇' : '🎤';
+            } catch (error) {
+                showStatus(error.message, 'error');
+            }
+        };
+
+        // Toggle camera
+        window.toggleCamera = async function() {
+            try {
+                await smartc.toggleCamera();
+                isCameraOff = !isCameraOff;
+                const btn = document.querySelector('.btn-camera');
+                btn.classList.toggle('active', isCameraOff);
+                btn.textContent = isCameraOff ? '📷' : '📹';
+            } catch (error) {
+                showStatus(error.message, 'error');
+            }
+        };
+
+        // Quitter l'appel
+        window.leaveCall = async function() {
+            try {
+                await smartc.logout();
+                showStatus('Appel terminé', 'success');
+                
+                // Réinitialiser l'interface
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('videoContainer').style.display = 'none';
+                
+                // Nettoyer les vidéos
+                document.getElementById('remoteVideos').innerHTML = '';
+                document.getElementById('localVideo').srcObject = null;
+                
+                // Réinitialiser les boutons
+                isMuted = false;
+                isCameraOff = false;
+                document.querySelector('.btn-mute').classList.remove('active');
+                document.querySelector('.btn-mute').textContent = '🎤';
+                document.querySelector('.btn-camera').classList.remove('active');
+                document.querySelector('.btn-camera').textContent = '📹';
+            } catch (error) {
+                showStatus(error.message, 'error');
+            }
+        };
+
+        // Ajouter une vidéo distante
+        function addRemoteVideo(userId, stream) {
+            const container = document.getElementById('remoteVideos');
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'video-wrapper';
+            wrapper.id = `remote-${userId}`;
+            
+            const video = document.createElement('video');
+            video.autoplay = true;
+            video.srcObject = stream;
+            
+            const label = document.createElement('div');
+            label.className = 'video-label';
+            label.textContent = `User ${userId}`;
+            
+            wrapper.appendChild(video);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        }
+
+        // Supprimer une vidéo distante
+        function removeRemoteVideo(userId) {
+            const wrapper = document.getElementById(`remote-${userId}`);
+            if (wrapper) {
+                wrapper.remove();
+            }
+        }
+
+        // Afficher un message de status
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+            
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

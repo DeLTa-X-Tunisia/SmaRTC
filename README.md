@@ -15,6 +15,9 @@
 [![WebRTC](https://img.shields.io/badge/WebRTC-Enabled-00D084?logo=webrtc)](https://webrtc.org/)
 [![SignalR](https://img.shields.io/badge/SignalR-Real--Time-8A2BE2?logo=microsoft)](https://dotnet.microsoft.com/apps/aspnet/signalr)
 
+![SDK Simplifié](https://img.shields.io/badge/SDK-Simplifié%2050%25%20moins%20de%20code-brightgreen?style=for-the-badge)
+[![Multi-Language SDKs](https://img.shields.io/badge/SDKs-Dart%20%7C%20JS%20%7C%20C%23%20%7C%20Swift-ff69b4?style=for-the-badge)](sdk/README.md)
+
 [![Bugs Squashed](https://img.shields.io/badge/Bugs%20Squashed-∞-success?logo=github)](docs/troubleshooting.md)
 [![Coffee Consumed](https://img.shields.io/badge/Coffee%20Consumed-%E2%98%95%20%E2%98%95%20%E2%98%95-brown)](https://en.wikipedia.org/wiki/Coffee)
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-Chef's%20Kiss-ff69b4?logo=chef)](https://github.com/DeLTa-X-Tunisia/SmaRTC)
@@ -192,7 +195,21 @@ The platform includes a comprehensive PowerShell test script that validates the 
 
 ## 📖 Documentation
 
-Dive deeper into the platform with our comprehensive docs:
+### 🚀 Pour les Développeurs
+
+**Nouveau !** Documentation simplifiée pour une intégration rapide :
+
+- 🎯 **[Quick Start (5 min)](QUICK_START.md)** — Guide ultra-rapide pour débuter
+- 📦 **[Vue d'ensemble SDKs](sdk/README.md)** — Comparaison Dart/JS/C#/Swift
+- 📋 **[Nouveautés SDK](SDK_IMPROVEMENTS.md)** — Wrappers, exemples, statistiques
+- 🎨 **[Wrapper Flutter](sdk/flutter/SIMPLE.md)** — API simplifiée pour Flutter
+- 🌐 **[SDK JavaScript](sdk/js/README.md)** — React, Vue, vanilla JS
+- 🖥️ **[SDK C#](sdk/csharp/README.md)** — WPF, Unity, .NET
+- 🍎 **[SDK Swift](sdk/swift/README.md)** — iOS, macOS
+
+### 📚 Documentation Plateforme
+
+Plongez dans les détails techniques de la plateforme :
 
 - **[Getting Started](docs/docker-startup.md)** — Step-by-step setup guide
 - **[Development Guide](docs/development-guide.md)** — Best practices, migrations, and conventions
@@ -202,19 +219,120 @@ Dive deeper into the platform with our comprehensive docs:
 
 ---
 
-## 📱 Flutter SDK
+## 🚀 SDK Simplifié – Nouveautés ✨
 
-SmaRTC now includes a **complete Flutter SDK** for building native mobile video calling apps!
+**SmaRTC est maintenant ultra-simple à intégrer !** Nous avons créé des **wrappers simplifiés** qui réduisent le code de **50%** 🎉
+
+### 🎯 Avant vs Après
+
+<table>
+<tr>
+<td width="50%">
+
+**Avant (SDK Standard)**
+```dart
+await SmaRTCClient.initialize(...);
+await SmaRTCClient.instance.auth.login(
+  username: "demo", 
+  password: "pass"
+);
+final session = await SmaRTCClient
+  .instance.sessions.createSession(
+    name: "Call"
+  );
+await SmaRTCClient.instance.webrtc
+  .joinSession(session.id);
+```
+
+</td>
+<td width="50%">
+
+**Après (Wrapper Simple)**
+```dart
+final smartc = SmaRTCSimple();
+await smartc.login('demo', 'pass');
+await smartc.startCall('Call');
+// ✅ Crée + rejoint auto !
+```
+
+</td>
+</tr>
+</table>
+
+### 📦 Wrappers Disponibles
+
+| Langage | Fichier | Quick Start | Documentation |
+|---------|---------|-------------|---------------|
+| **Dart/Flutter** | [`smartc_simple.dart`](sdk/flutter/lib/smartc_simple.dart) | [Exemple](sdk/flutter/example/lib/quick_start.dart) | [SIMPLE.md](sdk/flutter/SIMPLE.md) |
+| **JavaScript** | [`smartc-simple.js`](sdk/js/smartc-simple.js) | [Démo Live](sdk/js/examples/simple-demo.html) | [README.md](sdk/js/README.md) |
+| **C#** | *(en cours)* | [Exemple WPF](sdk/csharp/README.md#wpf) | [README.md](sdk/csharp/README.md) |
+| **Swift** | *(en cours)* | [Exemple SwiftUI](sdk/swift/examples/QuickStart.swift) | [README.md](sdk/swift/README.md) |
+
+### ⚡ Fonctionnalités Clés
+
+- ✅ **Méthodes simplifiées** : `startCall()`, `joinCall()`, `endCall()` au lieu de multiples appels
+- ✅ **Erreurs en français** : "Identifiants incorrects", "Cet appel n'existe pas", etc.
+- ✅ **Auto-gestion** : Garde trace de la session courante automatiquement
+- ✅ **Fallback STUN** : Utilise Google STUN si pas de serveur TURN configuré
+- ✅ **Zéro config** : Fonctionne out-of-the-box avec des valeurs par défaut sensées
+
+### 🎓 Démarrage Rapide (5 minutes)
+
+```bash
+# 1. Lire le guide complet
+cat QUICK_START.md
+
+# 2. Voir les améliorations
+cat SDK_IMPROVEMENTS.md
+
+# 3. Choisir votre langage
+cd sdk/flutter  # ou js, csharp, swift
+```
+
+**📚 Documentation complète :**
+- 🚀 **[Guide de démarrage rapide](QUICK_START.md)** — 5 minutes pour être opérationnel
+- 📦 **[Vue d'ensemble des SDKs](sdk/README.md)** — Comparaison et choix du bon SDK
+- 📋 **[Améliorations détaillées](SDK_IMPROVEMENTS.md)** — Récapitulatif des nouveautés
+
+### 💡 Exemples Minimalistes
+
+**Flutter (3 lignes)**
+```dart
+final smartc = SmaRTCSimple();
+await smartc.login('demo', 'Demo123!');
+await smartc.startCall('Mon appel');
+```
+
+**JavaScript (3 lignes)**
+```javascript
+const smartc = new SmaRTCSimple();
+await smartc.login('demo', 'Demo123!');
+await smartc.startCall('Mon appel');
+```
+
+**C# (4 lignes)**
+```csharp
+var client = new SmaRTCClient(config);
+await client.Auth.LoginAsync("demo", "Demo123!");
+var session = await client.Sessions.CreateAsync("Mon appel");
+await client.WebRTC.JoinAsync(session.Id);
+```
+
+---
+
+## 📱 Flutter SDK (Production Ready)
+
+SmaRTC inclut un **SDK Flutter complet** pour créer des apps de visioconférence natives !
 
 ### Features
-- 🎨 **Pre-built UI Components** — Ready-to-use call screens and widgets
-- 📞 **WebRTC Integration** — Full peer-to-peer calling support
-- 🔐 **JWT Authentication** — Seamless auth with the backend
-- 🎥 **Session Management** — Create and join sessions easily
-- 📡 **SignalR Support** — Real-time signaling built-in
-- 📱 **Multi-platform** — Android, iOS, and Web support
+- 🎨 **Composants UI prêts** — CallScreen, PreviewScreen, widgets vidéo
+- 📞 **WebRTC intégré** — Support complet peer-to-peer
+- 🔐 **Auth JWT** — Authentification seamless avec le backend
+- 🎥 **Gestion sessions** — Création et participation facilitées
+- 📡 **SignalR** — Signaling temps-réel intégré
+- 📱 **Multi-plateforme** — Android, iOS, et Web
 
-### Quick Start
+### Quick Start (Standard)
 
 ```dart
 // Initialize the SDK
@@ -240,7 +358,8 @@ Navigator.push(
 );
 ```
 
-📚 **[Full Flutter SDK Documentation →](sdk/flutter/README.md)**
+📚 **[Documentation Flutter complète →](sdk/flutter/README.md)**  
+🚀 **[Wrapper simplifié Flutter →](sdk/flutter/SIMPLE.md)**
 
 ---
 
@@ -256,11 +375,14 @@ Navigator.push(
 - **[Docker](https://www.docker.com/)** — Containerization for the win
 - **[Coturn](https://github.com/coturn/coturn)** — STUN/TURN server for NAT traversal
 
-### Flutter SDK
-- **[Flutter](https://flutter.dev/)** — Beautiful native apps from a single codebase
+### Client SDKs
+- **[Flutter](https://flutter.dev/)** — Beautiful native apps (Dart)
 - **[flutter_webrtc](https://pub.dev/packages/flutter_webrtc)** — WebRTC for Flutter
 - **[signalr_netcore](https://pub.dev/packages/signalr_netcore)** — SignalR client
 - **[Provider](https://pub.dev/packages/provider)** — State management
+- **JavaScript/TypeScript** — Web, React, Vue, Node.js
+- **C# / .NET** — Desktop apps, Unity games
+- **Swift** — iOS and macOS native apps
 
 ---
 
