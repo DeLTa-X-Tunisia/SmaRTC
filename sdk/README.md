@@ -13,9 +13,9 @@ Bienvenue dans l'écosystème des SDKs SmaRTC ! Cette collection vous permet d'i
 | [**Kotlin**](./kotlin/) | Kotlin | Android | 🚧 **Beta** | Apps Android natives |
 | [**C#**](./csharp/) | C# | .NET 6+, Unity | 🔄 **En cours** | Apps Windows, jeux |
 | [**Swift**](./swift/) | Swift | iOS, macOS | 📋 **Planifié** | Apps Apple natives |
-| [**Go**](./go/) | Go | Backend, Microservices | 📋 **Planifié** | Serveurs temps réel |
-| [**Rust**](./rust/) | Rust | Native, Edge | 📋 **Planifié** | Performance, sécurité |
-| [**Java**](./java/) | Java | Enterprise, Android | 📋 **Planifié** | Intégration entreprise |
+| [**Go**](./go/) | Go | Backend, Microservices | ✅ **Production** | Serveurs temps réel |
+| [**Rust**](./rust/) | Rust | Native, Edge | ✅ **Production** | Performance, sécurité |
+| [**Java**](./java/) | Java | Enterprise, Android | ✅ **Production** | Intégration entreprise |
 
 ## ⚡ Quick Start (10 secondes)
 
