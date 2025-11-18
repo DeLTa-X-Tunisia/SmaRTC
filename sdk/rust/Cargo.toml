@@ -1,0 +1,31 @@
+[package]
+name = "smartc"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeLTa-X Tunisia <contact@delta-x.tn>"]
+description = "SDK Rust minimaliste pour SmaRTC WebRTC"
+license = "MIT"
+repository = "https://github.com/DeLTa-X-Tunisia/SmaRTC"
+keywords = ["webrtc", "realtime", "sdk", "async"]
+categories = ["network-programming", "web-programming"]
+
+[dependencies]
+# HTTP client async avec tokio
+reqwest = { version = "0.11", features = ["json"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Sérialisation JSON
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Erreurs ergonomiques
+thiserror = "1.0"
+
+[dev-dependencies]
+tokio-test = "0.4"
+
+[lib]
+name = "smartc"
+path = "src/lib.rs"

@@ -1,0 +1,58 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'tn.deltax'
+version = '1.0.0'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    // OkHttp pour HTTP client
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    
+    // Gson pour JSON
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Tests
+    testImplementation 'junit:junit:4.13.2'
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            
+            pom {
+                name = 'SmaRTC Java SDK'
+                description = 'SDK Java minimaliste pour SmaRTC WebRTC'
+                url = 'https://github.com/DeLTa-X-Tunisia/SmaRTC'
+                
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id = 'deltax'
+                        name = 'DeLTa-X Tunisia'
+                        email = 'contact@delta-x.tn'
+                    }
+                }
+            }
+        }
+    }
+}
