@@ -1,0 +1,111 @@
+# ========================================
+# Message Throughput Load Test
+# Target: 10,000 messages/second
+# Duration: 5 minutes
+# ========================================
+
+config:
+  target: "ws://localhost"
+  phases:
+    # Phase 1: Ramp up connections
+    - duration: 60
+      arrivalRate: 50
+      name: "Connection ramp-up"
+    
+    # Phase 2: High message throughput
+    - duration: 180
+      arrivalRate: 20
+      name: "High-throughput testing"
+    
+    # Phase 3: Sustained throughput
+    - duration: 120
+      arrivalRate: 10
+      name: "Sustained load"
+  
+  engines:
+    ws:
+      timeout: 60000
+  
+  ensure:
+    maxErrorRate: 2
+    p95: 200
+    p99: 500
+
+  variables:
+    sessionId:
+      - "throughput-test-1"
+      - "throughput-test-2"
+      - "throughput-test-3"
+
+# ========================================
+# Test Scenarios
+# ========================================
+scenarios:
+  - name: "High-Frequency Signaling"
+    weight: 80
+    engine: ws
+    flow:
+      # Connect
+      - connect:
+          url: "/signalhub"
+      
+      # Handshake
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      - think: 1
+      
+      # Join session
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","ThroughputUser{{ $randomNumber() }}"]}'
+      - think: 1
+      
+      # Send rapid signals (simulate WebRTC negotiation)
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"SendSignalToSession","arguments":["{{ sessionId }}","{\"type\":\"offer\",\"sdp\":\"v=0...\"}","ThroughputUser{{ $randomNumber() }}"]}'
+        - think: 0.1  # 100ms between messages
+        count: 100  # 100 messages per connection
+      
+      # Cleanup
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+  
+  - name: "Broadcast Storm Test"
+    weight: 20
+    engine: ws
+    flow:
+      # Connect
+      - connect:
+          url: "/signalhub"
+      
+      # Handshake
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      - think: 1
+      
+      # Join session
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","BroadcastUser{{ $randomNumber() }}"]}'
+      - think: 1
+      
+      # Rapid broadcast signals
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"BroadcastSignal","arguments":["{{ sessionId }}","{\"data\":\"test\"}"]}'
+        - think: 0.05  # 50ms between broadcasts
+        count: 200
+      
+      # Cleanup
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+
+# ========================================
+# Expected Results
+# ========================================
+# Messages/second: 10,000+
+# Average latency: 50-100ms
+# P95 latency: <200ms
+# P99 latency: <500ms
+# CPU usage: 40-60%
+# Memory usage: Stable (no leaks)
+# ========================================

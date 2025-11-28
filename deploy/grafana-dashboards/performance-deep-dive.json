@@ -1,0 +1,374 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "smartc-performance",
+    "title": "SmaRTC Zero-Cost - Performance Deep Dive",
+    "tags": ["smartc", "performance", "optimization"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "type": "timeseries",
+        "title": "💾 Memory Usage per Instance",
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{name=~\".*signal.*\"} / 1024 / 1024",
+            "refId": "A",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "decmbytes",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10,
+              "axisPlacement": "auto"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 800, "color": "yellow" },
+                { "value": 1200, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "mean", "max"]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": "timeseries",
+        "title": "⚡ CPU Usage per Core",
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{name=~\".*signal.*\"}[1m]) * 100",
+            "refId": "A",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 15
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 50, "color": "yellow" },
+                { "value": 80, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": "timeseries",
+        "title": "🗑️ Garbage Collection Activity",
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(dotnet_collection_count_total[1m]) * 60",
+            "refId": "A",
+            "legendFormat": "Gen {{generation}} Collections/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "bars",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 80
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byRegexp", "options": "/Gen 0/" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byRegexp", "options": "/Gen 1/" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byRegexp", "options": "/Gen 2/" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "type": "timeseries",
+        "title": "⏱️ Request Latency Percentiles",
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(smartc_request_duration_seconds_bucket[5m])) by (le))",
+            "refId": "A",
+            "legendFormat": "P50"
+          },
+          {
+            "expr": "histogram_quantile(0.90, sum(rate(smartc_request_duration_seconds_bucket[5m])) by (le))",
+            "refId": "B",
+            "legendFormat": "P90"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(smartc_request_duration_seconds_bucket[5m])) by (le))",
+            "refId": "C",
+            "legendFormat": "P95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(smartc_request_duration_seconds_bucket[5m])) by (le))",
+            "refId": "D",
+            "legendFormat": "P99"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 5
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": "gauge",
+        "title": "📊 Connection Pool Efficiency",
+        "gridPos": { "x": 0, "y": 16, "w": 8, "h": 6 },
+        "targets": [
+          {
+            "expr": "(smartc_connection_pool_size - smartc_connection_pool_available) / smartc_connection_pool_size * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 50, "color": "yellow" },
+                { "value": 80, "color": "green" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "🔄 Connection Churn Rate",
+        "gridPos": { "x": 8, "y": 16, "w": 8, "h": 6 },
+        "targets": [
+          {
+            "expr": "(rate(smartc_connections_opened_total[5m]) + rate(smartc_connections_closed_total[5m])) * 60",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 100, "color": "yellow" },
+                { "value": 500, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 7,
+        "type": "stat",
+        "title": "⚠️ Error Rate",
+        "gridPos": { "x": 16, "y": 16, "w": 8, "h": 6 },
+        "targets": [
+          {
+            "expr": "sum(rate(smartc_errors_total[5m])) * 60",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 2,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 10, "color": "yellow" },
+                { "value": 50, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "background",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 8,
+        "type": "timeseries",
+        "title": "🌐 Network I/O",
+        "gridPos": { "x": 0, "y": 22, "w": 24, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{name=~\".*signal.*\"}[1m]) * 8 / 1024 / 1024",
+            "refId": "A",
+            "legendFormat": "{{name}} - Inbound"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{name=~\".*signal.*\"}[1m]) * 8 / 1024 / 1024",
+            "refId": "B",
+            "legendFormat": "{{name}} - Outbound"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Mbits",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10,
+              "axisPlacement": "auto"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byRegexp", "options": "/Inbound/" },
+              "properties": [
+                { "id": "custom.transform", "value": "negative-Y" }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "type": "table",
+        "title": "🎯 Top Resource Consumers",
+        "gridPos": { "x": 0, "y": 30, "w": 12, "h": 6 },
+        "targets": [
+          {
+            "expr": "topk(10, container_memory_usage_bytes{name=~\".*signal.*\"})",
+            "refId": "A",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true
+              },
+              "renameByName": {
+                "name": "Container",
+                "Value": "Memory (bytes)"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "type": "stat",
+        "title": "⏰ Average Session Duration",
+        "gridPos": { "x": 12, "y": 30, "w": 12, "h": 6 },
+        "targets": [
+          {
+            "expr": "avg(smartc_session_duration_seconds)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "blue" },
+                { "value": 300, "color": "green" },
+                { "value": 3600, "color": "yellow" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "instance",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(smartc_active_connections, instance)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    }
+  },
+  "overwrite": true
+}

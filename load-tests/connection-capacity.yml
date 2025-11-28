@@ -1,0 +1,109 @@
+# ========================================
+# Connection Capacity Load Test
+# Target: 100,000 concurrent WebSocket connections
+# Duration: 10 minutes ramp-up + 10 minutes sustained
+# ========================================
+
+config:
+  target: "ws://localhost"
+  phases:
+    # Phase 1: Warm up (1 minute)
+    - duration: 60
+      arrivalRate: 100
+      name: "Warm-up: 100 connections/sec"
+    
+    # Phase 2: Gradual ramp (5 minutes)
+    - duration: 300
+      arrivalRate: 500
+      name: "Ramp-up: 500 connections/sec"
+    
+    # Phase 3: Aggressive ramp (3 minutes)
+    - duration: 180
+      arrivalRate: 1000
+      name: "Aggressive: 1000 connections/sec"
+    
+    # Phase 4: Sustained load (10 minutes)
+    - duration: 600
+      arrivalRate: 100
+      name: "Sustained: Hold 100k connections"
+  
+  # WebSocket plugin
+  engines:
+    ws:
+      timeout: 120000  # 2 minutes timeout
+  
+  # Performance metrics
+  ensure:
+    maxErrorRate: 1  # Max 1% error rate
+    p95: 500         # P95 latency < 500ms
+    p99: 1000        # P99 latency < 1000ms
+
+  # Custom variables
+  variables:
+    sessionId:
+      - "load-test-session-1"
+      - "load-test-session-2"
+      - "load-test-session-3"
+      - "load-test-session-4"
+      - "load-test-session-5"
+
+# ========================================
+# Test Scenarios
+# ========================================
+scenarios:
+  - name: "WebSocket Connection Test"
+    weight: 100
+    engine: ws
+    flow:
+      # Connect to SignalR hub
+      - connect:
+          url: "/signalhub"
+      
+      # Wait for connection to establish
+      - think: 2
+      
+      # Send SignalR handshake
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      
+      # Wait for handshake response
+      - think: 1
+      
+      # Join a random session
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","LoadTestUser{{ $randomNumber() }}"]}'
+      
+      # Think time (simulate idle user)
+      - think: 30
+      
+      # Send periodic heartbeat every 30s
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"Heartbeat","arguments":[]}'
+        - think: 30
+        count: 20  # 20 iterations = 10 minutes
+      
+      # Leave session gracefully
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+      
+      # Small delay before disconnect
+      - think: 1
+
+# ========================================
+# Custom Plugins & Processors
+# ========================================
+plugins:
+  expect: {}
+  metrics-by-endpoint: {}
+
+# ========================================
+# Expected Results
+# ========================================
+# Total connections: ~100,000
+# Memory usage: ~1GB per server instance
+# CPU usage: 30-50% (4-core server)
+# Success rate: >99%
+# P95 latency: <200ms
+# P99 latency: <500ms
+# ========================================

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmaRTC - Simple Video Chat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+    }
+    .controls {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    .control-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input, button, select {
+      padding: 12px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover:not(:disabled) {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    button.danger {
+      background: #ef4444;
+    }
+    button.danger:hover:not(:disabled) {
+      background: #dc2626;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .video-container {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+    .video-label {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .stats {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+    }
+    .status {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+    .status.connected { background: #10b981; }
+    .status.disconnected { background: #ef4444; }
+    .status.connecting { background: #f59e0b; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .info-panel {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .info-panel h3 {
+      margin-bottom: 10px;
+      color: #667eea;
+    }
+    .peer-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .peer-badge {
+      background: #f3f4f6;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .peer-badge.relay {
+      background: #fef3c7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 SmaRTC Simple Video Chat</h1>
+    
+    <div class="controls">
+      <div class="control-group">
+        <input 
+          type="text" 
+          id="serverUrl" 
+          placeholder="Server URL" 
+          value="http://localhost:5000"
+          style="flex: 1; min-width: 200px;"
+        />
+        <input 
+          type="text" 
+          id="sessionId" 
+          placeholder="Session ID (e.g., room-123)" 
+          value="demo-room"
+          style="flex: 1; min-width: 200px;"
+        />
+        <input 
+          type="text" 
+          id="username" 
+          placeholder="Your name" 
+          value=""
+          style="flex: 1; min-width: 150px;"
+        />
+        <select id="quality">
+          <option value="low">Low Quality</option>
+          <option value="medium" selected>Medium Quality</option>
+          <option value="high">High Quality</option>
+        </select>
+        <label>
+          <input type="checkbox" id="enableMesh" checked /> Enable P2P Mesh
+        </label>
+        <label>
+          <input type="checkbox" id="canRelay" /> Can Relay
+        </label>
+      </div>
+      <div class="control-group" style="margin-top: 15px;">
+        <button id="joinBtn">
+          <span class="status disconnected"></span>
+          Join Session
+        </button>
+        <button id="leaveBtn" disabled class="danger">Leave Session</button>
+        <button id="toggleVideoBtn" disabled>🎥 Video On</button>
+        <button id="toggleAudioBtn" disabled>🎤 Audio On</button>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <h3>📊 Connection Info</h3>
+      <div id="connectionInfo">Not connected</div>
+      <h3 style="margin-top: 15px;">👥 Peers (<span id="peerCount">0</span>)</h3>
+      <div class="peer-list" id="peerList">No peers connected</div>
+    </div>
+
+    <div class="video-grid" id="videoGrid">
+      <!-- Videos will be added here dynamically -->
+    </div>
+  </div>
+
+  <script src="../dist/smartc-browser.js"></script>
+  <script>
+    const { SmaRTCClient } = window.SmaRTC;
+
+    let client = null;
+    let localStream = null;
+    let isVideoEnabled = true;
+    let isAudioEnabled = true;
+
+    // DOM elements
+    const joinBtn = document.getElementById('joinBtn');
+    const leaveBtn = document.getElementById('leaveBtn');
+    const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const videoGrid = document.getElementById('videoGrid');
+    const connectionInfo = document.getElementById('connectionInfo');
+    const peerList = document.getElementById('peerList');
+    const peerCount = document.getElementById('peerCount');
+
+    // Generate random username if empty
+    const usernameInput = document.getElementById('username');
+    if (!usernameInput.value) {
+      usernameInput.value = `User-${Math.floor(Math.random() * 10000)}`;
+    }
+
+    // Join session
+    joinBtn.addEventListener('click', async () => {
+      const serverUrl = document.getElementById('serverUrl').value;
+      const sessionId = document.getElementById('sessionId').value;
+      const username = usernameInput.value;
+      const quality = document.getElementById('quality').value;
+      const enableMesh = document.getElementById('enableMesh').checked;
+      const canRelay = document.getElementById('canRelay').checked;
+
+      if (!sessionId || !username) {
+        alert('Please enter session ID and username');
+        return;
+      }
+
+      try {
+        updateStatus('connecting');
+        joinBtn.disabled = true;
+
+        // Get local media
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 1280, height: 720 },
+          audio: true
+        });
+
+        // Add local video
+        addVideoElement('local', localStream, '🎥 You (Local)');
+
+        // Create client
+        client = new SmaRTCClient({
+          serverUrl,
+          sessionId,
+          username,
+          quality,
+          enableMesh,
+          canRelay
+        });
+
+        // Register event handlers
+        client.on('connected', () => {
+          console.log('✅ Connected to server');
+          updateStatus('connected');
+          leaveBtn.disabled = false;
+          toggleVideoBtn.disabled = false;
+          toggleAudioBtn.disabled = false;
+          updateConnectionInfo();
+        });
+
+        client.on('disconnected', () => {
+          console.log('👋 Disconnected');
+          updateStatus('disconnected');
+          cleanup();
+        });
+
+        client.on('peer-joined', (peerId, username) => {
+          console.log('👤 Peer joined:', username || peerId);
+          updatePeerList();
+        });
+
+        client.on('peer-left', (peerId) => {
+          console.log('👋 Peer left:', peerId);
+          removeVideoElement(peerId);
+          updatePeerList();
+        });
+
+        client.on('remote-stream', (peerId, stream, username) => {
+          console.log('📹 Received stream from:', username || peerId);
+          addVideoElement(peerId, stream, `👤 ${username || peerId}`);
+        });
+
+        client.on('error', (error) => {
+          console.error('❌ Error:', error);
+          alert(`Error: ${error.message}`);
+        });
+
+        client.on('session-info', (info) => {
+          console.log('ℹ️ Session info:', info);
+          updateConnectionInfo(info);
+        });
+
+        // Connect
+        await client.connect(localStream);
+
+      } catch (error) {
+        console.error('Failed to join:', error);
+        alert(`Failed to join: ${error.message}`);
+        updateStatus('disconnected');
+        joinBtn.disabled = false;
+      }
+    });
+
+    // Leave session
+    leaveBtn.addEventListener('click', async () => {
+      if (client) {
+        await client.disconnect();
+      }
+      cleanup();
+    });
+
+    // Toggle video
+    toggleVideoBtn.addEventListener('click', () => {
+      if (localStream) {
+        isVideoEnabled = !isVideoEnabled;
+        localStream.getVideoTracks().forEach(track => {
+          track.enabled = isVideoEnabled;
+        });
+        toggleVideoBtn.textContent = isVideoEnabled ? '🎥 Video On' : '🚫 Video Off';
+      }
+    });
+
+    // Toggle audio
+    toggleAudioBtn.addEventListener('click', () => {
+      if (localStream) {
+        isAudioEnabled = !isAudioEnabled;
+        localStream.getAudioTracks().forEach(track => {
+          track.enabled = isAudioEnabled;
+        });
+        toggleAudioBtn.textContent = isAudioEnabled ? '🎤 Audio On' : '🔇 Audio Off';
+      }
+    });
+
+    // Helper functions
+    function updateStatus(status) {
+      const statusDot = joinBtn.querySelector('.status');
+      statusDot.className = `status ${status}`;
+    }
+
+    function addVideoElement(id, stream, label) {
+      // Remove existing if any
+      removeVideoElement(id);
+
+      const container = document.createElement('div');
+      container.className = 'video-container';
+      container.id = `video-${id}`;
+
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = (id === 'local'); // Mute local to avoid feedback
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'video-label';
+      labelDiv.textContent = label;
+
+      const statsDiv = document.createElement('div');
+      statsDiv.className = 'stats';
+      statsDiv.id = `stats-${id}`;
+      statsDiv.textContent = '📊 Connecting...';
+
+      container.appendChild(video);
+      container.appendChild(labelDiv);
+      container.appendChild(statsDiv);
+      videoGrid.appendChild(container);
+
+      // Update stats periodically
+      if (id !== 'local' && client) {
+        const intervalId = setInterval(async () => {
+          if (!client) {
+            clearInterval(intervalId);
+            return;
+          }
+          try {
+            const stats = await client.getStats(id);
+            if (stats) {
+              statsDiv.textContent = `📊 ${stats.latency}ms | ${stats.bitrate}kbps`;
+            }
+          } catch (e) {
+            clearInterval(intervalId);
+          }
+        }, 2000);
+        
+        // Store interval ID for cleanup
+        container.dataset.intervalId = intervalId;
+      }
+    }
+
+    function removeVideoElement(id) {
+      const container = document.getElementById(`video-${id}`);
+      if (container) {
+        // Clear stats interval if exists
+        const intervalId = container.dataset.intervalId;
+        if (intervalId) {
+          clearInterval(parseInt(intervalId));
+        }
+        container.remove();
+      }
+    }
+
+    function updateConnectionInfo(info) {
+      if (!client) {
+        connectionInfo.textContent = 'Not connected';
+        return;
+      }
+
+      const sessionInfo = client.getSessionInfo();
+      if (sessionInfo) {
+        connectionInfo.innerHTML = `
+          <strong>Session:</strong> ${sessionInfo.sessionId}<br>
+          <strong>Participants:</strong> ${sessionInfo.totalPeers}<br>
+          <strong>Mesh Strategy:</strong> ${sessionInfo.meshStrategy || 'N/A'}<br>
+          <strong>Direct Peers:</strong> ${client.getPeers().filter(p => !p.isRelay).length}<br>
+          <strong>Via Relay:</strong> ${client.getPeers().filter(p => p.isRelay).length}
+        `;
+      } else {
+        connectionInfo.textContent = 'Connected, waiting for session info...';
+      }
+    }
+
+    function updatePeerList() {
+      if (!client) {
+        peerList.innerHTML = 'No peers connected';
+        peerCount.textContent = '0';
+        return;
+      }
+
+      const peers = client.getPeers();
+      peerCount.textContent = peers.length;
+
+      if (peers.length === 0) {
+        peerList.innerHTML = 'No peers connected';
+        return;
+      }
+
+      peerList.innerHTML = peers.map(peer => `
+        <div class="peer-badge ${peer.isRelay ? 'relay' : ''}">
+          ${peer.isRelay ? '🔀' : '🔗'} ${peer.peerId}
+          <small>(${peer.latency}ms)</small>
+        </div>
+      `).join('');
+    }
+
+    function cleanup() {
+      // Stop local stream
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+
+      // Clear all stats intervals
+      document.querySelectorAll('[id^="video-"]').forEach(container => {
+        const intervalId = container.dataset.intervalId;
+        if (intervalId) {
+          clearInterval(parseInt(intervalId));
+        }
+      });
+
+      // Clear videos
+      videoGrid.innerHTML = '';
+
+      // Reset UI
+      joinBtn.disabled = false;
+      leaveBtn.disabled = true;
+      toggleVideoBtn.disabled = true;
+      toggleAudioBtn.disabled = true;
+      updateStatus('disconnected');
+      connectionInfo.textContent = 'Not connected';
+      peerList.innerHTML = 'No peers connected';
+      peerCount.textContent = '0';
+
+      client = null;
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (client) {
+        client.disconnect();
+      }
+      cleanup();
+    });
+  </script>
+</body>
+</html>

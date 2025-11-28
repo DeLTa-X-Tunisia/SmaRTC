@@ -1,0 +1,21 @@
+# Prometheus configuration for SmaRTC monitoring
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  scrape_timeout: 10s
+
+scrape_configs:
+  # Signal server metrics
+  - job_name: 'signal-server'
+    static_configs:
+      - targets: ['signal-server:5000']
+    metrics_path: '/metrics'
+    
+  # HAProxy stats
+  - job_name: 'haproxy'
+    static_configs:
+      - targets: ['loadbalancer:8404']
+    metrics_path: '/stats/prometheus'
+
+  # Container metrics (cAdvisor would be here if installed)
+  # For zero-cost, we skip cAdvisor to save resources

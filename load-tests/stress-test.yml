@@ -1,0 +1,208 @@
+# ========================================
+# Stress Test - Find Breaking Point
+# Target: Push system beyond limits
+# Monitor: Graceful degradation & recovery
+# ========================================
+
+config:
+  target: "ws://localhost"
+  phases:
+    # Phase 1: Normal load
+    - duration: 60
+      arrivalRate: 500
+      name: "Baseline: 500/sec"
+    
+    # Phase 2: High load
+    - duration: 120
+      arrivalRate: 1000
+      name: "High load: 1000/sec"
+    
+    # Phase 3: Extreme load
+    - duration: 120
+      arrivalRate: 2000
+      name: "Extreme: 2000/sec"
+    
+    # Phase 4: Breaking point
+    - duration: 180
+      arrivalRate: 3000
+      name: "STRESS: 3000/sec"
+    
+    # Phase 5: Sustained overload
+    - duration: 120
+      arrivalRate: 2500
+      name: "Sustained overload"
+    
+    # Phase 6: Recovery test
+    - duration: 120
+      arrivalRate: 500
+      name: "Recovery phase"
+  
+  engines:
+    ws:
+      timeout: 30000  # Shorter timeout for stress test
+  
+  # More lenient expectations (we expect some failures)
+  ensure:
+    maxErrorRate: 10  # Allow up to 10% errors during stress
+  
+  variables:
+    sessionId:
+      - "stress-{{ $randomNumber(1, 100) }}"
+
+# ========================================
+# Stress Test Scenarios
+# ========================================
+scenarios:
+  # Rapid connect/disconnect (connection churn)
+  - name: "Connection Churn"
+    weight: 30
+    engine: ws
+    flow:
+      - connect:
+          url: "/signalhub"
+      
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      
+      - think: 1
+      
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","ChurnUser{{ $randomNumber() }}"]}'
+      
+      # Very short session (stress connection handling)
+      - think: 2
+      
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+      
+      # Immediate disconnect
+      - think: 0.5
+  
+  # Message flood (test message queues)
+  - name: "Message Flood"
+    weight: 25
+    engine: ws
+    flow:
+      - connect:
+          url: "/signalhub"
+      
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      - think: 1
+      
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","FloodUser{{ $randomNumber() }}"]}'
+      
+      # Flood server with messages (no think time)
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"BroadcastSignal","arguments":["{{ sessionId }}","{\"flood\":\"data\"}"]}'
+        count: 500  # 500 messages as fast as possible
+      
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+  
+  # Large payload test
+  - name: "Large Payload Stress"
+    weight: 20
+    engine: ws
+    flow:
+      - connect:
+          url: "/signalhub"
+      
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      - think: 1
+      
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","LargeUser{{ $randomNumber() }}"]}'
+      
+      # Send large (but within limit) messages
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"SendSignalToSession","arguments":["{{ sessionId }}","{\"type\":\"data\",\"payload\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}","LargeUser"]}'
+        - think: 0.5
+        count: 50
+      
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+  
+  # Long-lived stressed connection
+  - name: "Sustained Stress Connection"
+    weight: 15
+    engine: ws
+    flow:
+      - connect:
+          url: "/signalhub"
+      
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      - think: 1
+      
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","SustainedUser{{ $randomNumber() }}"]}'
+      
+      # Maintain connection under stress
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"Heartbeat","arguments":[]}'
+        - think: 5
+        - send:
+            payload: '{"type":1,"target":"BroadcastSignal","arguments":["{{ sessionId }}","{\"ping\":true}"]}'
+        - think: 5
+        count: 30  # 5 minutes of activity
+      
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+  
+  # Random chaos (mixed operations)
+  - name: "Chaos Monkey"
+    weight: 10
+    engine: ws
+    flow:
+      - connect:
+          url: "/signalhub"
+      
+      - send:
+          payload: '{"protocol":"json","version":1}'
+      
+      - think: "{{ $randomNumber(0, 3) }}"
+      
+      - send:
+          payload: '{"type":1,"target":"JoinSession","arguments":["{{ sessionId }}","ChaosUser{{ $randomNumber() }}"]}'
+      
+      # Random operations
+      - loop:
+        - send:
+            payload: '{"type":1,"target":"SendSignalToSession","arguments":["{{ sessionId }}","{\"chaos\":{{ $randomNumber() }}}","ChaosUser"]}'
+        - think: "{{ $randomNumber(0, 2) }}"
+        - send:
+            payload: '{"type":1,"target":"Heartbeat","arguments":[]}'
+        - think: "{{ $randomNumber(0, 5) }}"
+        count: "{{ $randomNumber(10, 100) }}"
+      
+      - send:
+          payload: '{"type":1,"target":"LeaveSession","arguments":["{{ sessionId }}"]}'
+
+# ========================================
+# Monitoring During Stress Test
+# ========================================
+# Watch for:
+# 1. Memory leaks (gradual increase)
+# 2. CPU spikes (>90% sustained)
+# 3. Connection drops (error rate)
+# 4. Response time degradation
+# 5. Recovery after load reduction
+#
+# Expected behavior:
+# - Graceful degradation (slower, not crash)
+# - Connection throttling kicks in
+# - Health endpoint remains responsive
+# - Auto-cleanup prevents memory leaks
+# - Quick recovery when load reduces
+# ========================================
+
+# ========================================
+# Run with monitoring:
+# artillery run stress-test.yml & watch -n 1 'curl -s http://localhost/stats | jq'
+# ========================================

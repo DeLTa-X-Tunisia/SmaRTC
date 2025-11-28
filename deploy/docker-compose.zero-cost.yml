@@ -1,0 +1,220 @@
+# ========================================
+# SmaRTC Zero-Cost Docker Compose
+# Target: 1M concurrent users, minimal resources
+# Strategy: Extreme optimization + free tier services
+# ========================================
+
+version: '3.9'
+
+services:
+  # ========================================
+  # Ultra-optimized Signal Server
+  # Target: 100k connections per instance
+  # Memory: 512MB-1GB per instance
+  # ========================================
+  signal-server:
+    build:
+      context: ../signal-server
+      dockerfile: Dockerfile.optimized
+    image: smartc-signal:zerocost
+    container_name: smartc-signal-1
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+      replicas: 3  # Scale horizontally with multiple instances
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      - AllowedOrigins=*
+      - DOTNET_GCHeapCount=2
+      - DOTNET_GCServer=1
+      - DOTNET_GCConcurrent=1
+      - DOTNET_ThreadPool_MinThreads=500
+      - DOTNET_ThreadPool_MaxThreads=2000
+    ports:
+      - "5000-5002:5000"  # Multiple ports for load balancing
+    networks:
+      - smartc-net
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ========================================
+  # Lightweight Load Balancer (HAProxy)
+  # Alternative to expensive cloud load balancers
+  # ========================================
+  loadbalancer:
+    image: haproxy:2.9-alpine
+    container_name: smartc-lb
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8404:8404"  # Stats page
+    networks:
+      - smartc-net
+    depends_on:
+      - signal-server
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  # ========================================
+  # Free STUN Server (coturn)
+  # NAT traversal without cloud costs
+  # ========================================
+  stun-server:
+    image: coturn/coturn:alpine
+    container_name: smartc-stun
+    command: 
+      - "-n"
+      - "--log-file=stdout"
+      - "--listening-port=3478"
+      - "--fingerprint"
+      - "--lt-cred-mech"
+      - "--user=smartc:zerocost2024"
+      - "--realm=smartc.local"
+      - "--no-dtls"
+      - "--no-tls"
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+    networks:
+      - smartc-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ========================================
+  # Redis (for session state - optional)
+  # Can be removed for fully stateless operation
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: smartc-redis
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --save ""
+    networks:
+      - smartc-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # ========================================
+  # Prometheus (minimal monitoring)
+  # Free, self-hosted metrics
+  # ========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: smartc-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.size=1GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - smartc-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ========================================
+  # Grafana (visualization)
+  # Free dashboards for monitoring
+  # ========================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: smartc-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=zerocost2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/smartc/system-overview.json
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards/smartc:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - smartc-net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  smartc-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ========================================
+# DEPLOYMENT INSTRUCTIONS
+# ========================================
+# 
+# 1. Build optimized image:
+#    docker-compose -f docker-compose.zero-cost.yml build
+#
+# 2. Start services:
+#    docker-compose -f docker-compose.zero-cost.yml up -d
+#
+# 3. Scale signal servers:
+#    docker-compose -f docker-compose.zero-cost.yml up -d --scale signal-server=10
+#
+# 4. Check stats:
+#    http://localhost:8404/stats (HAProxy)
+#    http://localhost:3000 (Grafana - admin/zerocost2024)
+#
+# 5. Free hosting options:
+#    - Oracle Cloud Free Tier: 4 ARM cores, 24GB RAM
+#    - Google Cloud Free Tier: e2-micro instance
+#    - AWS Free Tier: t2.micro instance
+#    - Hetzner: €4.15/month for 2 cores, 4GB RAM
+#
+# Total estimated cost: €0-50/month for 1M users
+# ========================================

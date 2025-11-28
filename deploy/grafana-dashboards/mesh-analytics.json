@@ -1,0 +1,383 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "smartc-mesh",
+    "title": "SmaRTC Zero-Cost - Mesh Network Analytics",
+    "tags": ["smartc", "mesh", "p2p"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "type": "stat",
+        "title": "🕸️ Mesh Strategy Distribution",
+        "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(smartc_mesh_strategy{strategy=\"fullMesh\"})",
+            "refId": "A",
+            "legendFormat": "Full Mesh"
+          },
+          {
+            "expr": "sum(smartc_mesh_strategy{strategy=\"hybrid\"})",
+            "refId": "B",
+            "legendFormat": "Hybrid"
+          },
+          {
+            "expr": "sum(smartc_mesh_strategy{strategy=\"relayBased\"})",
+            "refId": "C",
+            "legendFormat": "Relay-Based"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "displayMode": "gradient"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Full Mesh" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Hybrid" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Relay-Based" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "values": false,
+            "fields": "",
+            "calcs": ["lastNotNull"]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "🎖️ Active Relay Nodes",
+        "gridPos": { "x": 8, "y": 0, "w": 8, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(smartc_relay_nodes_active)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "blue" },
+                { "value": 10, "color": "green" },
+                { "value": 50, "color": "yellow" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "📡 Avg Peers per Connection",
+        "gridPos": { "x": 16, "y": 0, "w": 8, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(smartc_direct_peer_connections) / sum(smartc_active_connections)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 5, "color": "yellow" },
+                { "value": 8, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "id": 4,
+        "type": "piechart",
+        "title": "🎯 Session Size Distribution",
+        "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "count(smartc_session_participants < 20)",
+            "refId": "A",
+            "legendFormat": "Small (< 20 users)"
+          },
+          {
+            "expr": "count(smartc_session_participants >= 20 < 50)",
+            "refId": "B",
+            "legendFormat": "Medium (20-50 users)"
+          },
+          {
+            "expr": "count(smartc_session_participants >= 50 < 100)",
+            "refId": "C",
+            "legendFormat": "Large (50-100 users)"
+          },
+          {
+            "expr": "count(smartc_session_participants >= 100)",
+            "refId": "D",
+            "legendFormat": "XL (100+ users)"
+          }
+        ],
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "percent"]
+          },
+          "pieType": "donut"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": "timeseries",
+        "title": "📊 Mesh Routing Efficiency",
+        "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(smartc_p2p_messages_sent_total[1m]) * 60",
+            "refId": "A",
+            "legendFormat": "P2P Messages/min (Zero Cost!)"
+          },
+          {
+            "expr": "rate(smartc_server_relayed_messages_total[1m]) * 60",
+            "refId": "B",
+            "legendFormat": "Server Relayed/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 15,
+              "axisPlacement": "auto"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byFrameRefID", "options": "A" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byFrameRefID", "options": "B" },
+              "properties": [
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": "heatmap",
+        "title": "🌡️ Latency Distribution Heatmap",
+        "gridPos": { "x": 0, "y": 12, "w": 24, "h": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(smartc_peer_latency_bucket[5m])) by (le)",
+            "refId": "A",
+            "format": "heatmap",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "options": {
+          "calculate": true,
+          "cellGap": 2,
+          "color": {
+            "mode": "scheme",
+            "scheme": "Spectral",
+            "steps": 128
+          },
+          "yAxis": {
+            "decimals": 0,
+            "unit": "ms"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              },
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "type": "graph",
+        "title": "🔄 Relay Node Performance",
+        "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "topk(10, smartc_relay_node_load)",
+            "refId": "A",
+            "legendFormat": "{{relay_node}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "fillOpacity": 0,
+              "pointSize": 5
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "max", "mean"]
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": "stat",
+        "title": "💰 Cost Savings (P2P vs Server)",
+        "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "(sum(rate(smartc_p2p_messages_sent_total[5m])) / (sum(rate(smartc_p2p_messages_sent_total[5m])) + sum(rate(smartc_server_relayed_messages_total[5m])))) * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "decimals": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 50, "color": "yellow" },
+                { "value": 80, "color": "green" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "textMode": "value_and_name",
+          "text": {
+            "titleSize": 14,
+            "valueSize": 80
+          }
+        }
+      },
+      {
+        "id": 9,
+        "type": "table",
+        "title": "📋 Top Relay Nodes by Traffic",
+        "gridPos": { "x": 0, "y": 28, "w": 24, "h": 6 },
+        "targets": [
+          {
+            "expr": "topk(15, smartc_relay_messages_forwarded_total)",
+            "refId": "A",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true
+              },
+              "renameByName": {
+                "relay_node": "Relay Node",
+                "Value": "Messages Forwarded",
+                "session_id": "Session"
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "field": "Messages Forwarded",
+                  "desc": true
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

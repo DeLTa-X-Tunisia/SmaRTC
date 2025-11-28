@@ -1,0 +1,72 @@
+# ========================================
+# Ultra-Optimized Dockerfile for Zero-Cost
+# Target: <50MB image size
+# ========================================
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+WORKDIR /src
+
+# Copy csproj and restore
+COPY signal-server.optimized.csproj .
+RUN dotnet restore signal-server.optimized.csproj
+
+# Copy source and build with AOT
+COPY . .
+RUN dotnet publish signal-server.optimized.csproj \
+    -c Release \
+    -o /app/publish \
+    --self-contained true \
+    /p:PublishAot=true \
+    /p:PublishTrimmed=true \
+    /p:TrimMode=full \
+    /p:IlcOptimizationPreference=Size \
+    /p:IlcGenerateStackTraceData=false \
+    /p:DebugType=none \
+    /p:DebugSymbols=false
+
+# Strip debug symbols (if not done by AOT)
+RUN cd /app/publish && \
+    if [ -f signal-server ]; then \
+        strip --strip-unneeded signal-server || true; \
+    fi
+
+# ========================================
+# Final stage - minimal runtime
+# ========================================
+FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-alpine AS final
+WORKDIR /app
+
+# Install only essential dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1000 smartc && \
+    adduser -u 1000 -G smartc -s /bin/sh -D smartc
+
+# Copy published app
+COPY --from=build /app/publish .
+
+# Set ownership
+RUN chown -R smartc:smartc /app
+
+# Switch to non-root user
+USER smartc
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1
+
+# Entry point
+ENTRYPOINT ["./signal-server"]
+
+# ========================================
+# Build command:
+# docker build -f Dockerfile.optimized -t smartc-signal:zerocost .
+#
+# Expected image size: 30-50MB
+# ========================================
