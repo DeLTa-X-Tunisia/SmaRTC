@@ -54,6 +54,9 @@ Whether you're building a video conferencing app, a collaborative workspace, or 
 - 🕸️ **Mesh Networking** — P2P mesh topology with automatic peer discovery and connection management
 - 📊 **Real-Time Statistics** — Track latency, bitrate, connection state for every peer
 - 🌍 **1M+ User Capacity** — Enterprise-grade architecture supporting millions of concurrent connections at near-zero cost
+- 🛡️ **Rate Limiting** — Configurable per-endpoint & per-user limits to prevent abuse (5 login attempts/min, 3 registrations/min, etc.)
+- 💚 **Health Checks** — Kubernetes-ready liveness/readiness probes + comprehensive component monitoring
+- 📱 **Mobile-First** — Full responsive design, offline detection, adaptive quality, network-aware optimization
 
 ---
 
@@ -138,6 +141,116 @@ SmaRTC is built on a microservices architecture, with each component handling a 
 | **STUN/TURN** | NAT traversal for peer connections | Coturn |
 | **Nginx** | Reverse proxy and load balancer | Nginx 1.25 |
 | **Monitoring** | Metrics and dashboards | Prometheus + Grafana |
+
+---
+
+## 🛡️ Enterprise Security & Reliability (NEW!)
+
+SmaRTC includes **production-ready security** and **observability** features right out of the box.
+
+### ✅ Rate Limiting (Abuse Prevention)
+
+**Configurable per-endpoint rate limits** prevent malicious users from overwhelming the API.
+
+```
+Default Limits:
+├─ Login: 5 attempts/minute (brute force protection)
+├─ Register: 3 attempts/minute (spam prevention)
+├─ Session API: 30 requests/minute (normal usage)
+├─ WebRTC ICE: 100 requests/minute (high frequency)
+└─ Admin: 10 requests/minute (sensitive operations)
+```
+
+**Rate limit headers in every response:**
+```http
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1669625445
+```
+
+When limit exceeded (HTTP 429):
+```json
+{
+  "error": "Too Many Requests",
+  "retryAfter": 42,
+  "rateLimit": { "remaining": 0, "resetTime": 1669625445 }
+}
+```
+
+📖 **[Rate Limiting Documentation →](api/RATE_LIMITING_HEALTH_CHECKS.md#-rate-limiting)**
+
+### 💚 Health Checks (Production Monitoring)
+
+**Kubernetes-ready health check endpoints** for automatic instance management:
+
+```bash
+# Overall health
+curl http://localhost:8080/api/health
+
+# Liveness (is app running?)
+curl http://localhost:8080/api/health/live
+
+# Readiness (accept traffic?)
+curl http://localhost:8080/api/health/ready
+
+# Lightweight ping
+curl http://localhost:8080/api/health/ping
+```
+
+**Example Kubernetes configuration:**
+```yaml
+livenessProbe:
+  httpGet:
+    path: /api/health/live
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /api/health/ready
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+```
+
+**Monitored Components:**
+- ✅ Database connectivity (PostgreSQL)
+- ✅ Cache availability (Redis)
+- ✅ API responsiveness
+- ✅ Response time metrics
+- ✅ Application uptime
+
+📖 **[Health Checks Documentation →](api/RATE_LIMITING_HEALTH_CHECKS.md#-health-check-endpoints)**
+
+### 📱 Mobile Optimization (Network-Aware)
+
+**Built-in mobile support** with automatic quality adaptation:
+
+```javascript
+// Automatically detect network speed
+const quality = getAdaptiveQuality(); // low/medium/high based on connection
+
+// Offline detection
+window.addEventListener('offline', () => showOfflineIndicator());
+window.addEventListener('online', () => reconnect());
+
+// Responsive design: 1 column (mobile) → 2+ columns (tablet/desktop)
+// Compact stats display for small screens
+// Touch-optimized UI (44px+ buttons)
+// Safe-area insets for notches and punch holes
+```
+
+**Features:**
+- ✅ Responsive grid (adapt to screen size)
+- ✅ Network-aware quality selection (2G/3G/4G/WiFi)
+- ✅ Offline detection with reconnection
+- ✅ Adaptive stats update frequency (3s mobile, 2s desktop)
+- ✅ Landscape/portrait orientation optimization
+- ✅ iOS safe-area support (notches, punch holes)
+- ✅ Touch optimizations (no tap highlights, proper tap targets)
+
+📖 **[Mobile Optimization Guide →](sdk/javascript-mesh/MOBILE_OPTIMIZATION.md)**
 
 ---
 

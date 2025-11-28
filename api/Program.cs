@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using TunRTC.API.Data;
 using TunRTC.API.Services;
+using TunRTC.API.Middleware;
 using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,12 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 builder.Services.AddSingleton<IceServerService>();
+
+// Add Rate Limiting Service (Enterprise-grade abuse prevention)
+builder.Services.AddSingleton<IRateLimitService, RateLimitService>();
+
+// Add Health Check Service (Production monitoring)
+builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -79,6 +86,9 @@ app.UseHttpsRedirection();
 
 // Enable CORS
 app.UseCors("AllowAll");
+
+// Apply Rate Limiting Middleware (must be before auth)
+app.UseRateLimiting();
 
 app.UseAuthentication();
 app.UseAuthorization();
