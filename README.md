@@ -960,6 +960,7 @@ This project was built with precision, debugged with patience, and deployed with
 ---
 
 <div align="center">
+<img width="679" height="683" alt="Logo" src="https://github.com/user-attachments/assets/b40e4658-e4f8-4c42-b8b6-e7a9cbec26f4" />
 
 **Made with 💙 by [DeLTa-X-Tunisia](https://github.com/DeLTa-X-Tunisia)**
 
