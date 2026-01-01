@@ -5,6 +5,9 @@ WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
+# Create file storage directory
+RUN mkdir -p /data/files/images /data/files/documents /data/files/videos /data/files/audio /data/files/other
+
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["api.csproj", "."]

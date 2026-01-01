@@ -21,6 +21,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - file_storage:/data/files
     networks:
       - tunrtc-net
 
@@ -101,3 +103,4 @@ networks:
 
 volumes:
   postgres_data:
+  file_storage:

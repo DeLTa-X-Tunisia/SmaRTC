@@ -29,6 +29,9 @@ builder.Services.AddSingleton<IRateLimitService, RateLimitService>();
 // Add Health Check Service (Production monitoring)
 builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
 
+// Add File Storage Service (Streaming upload/download)
+builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
