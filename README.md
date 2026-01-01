@@ -87,6 +87,14 @@ SmaRTC/                          ← Dépôt racine
 │   ├── Exemple_Python/          → Application console colorée
 │   └── Luncher_Python/          → Launcher WPF multi-clients
 │
+├── 📂 Go/                       ← Exemples Go
+│   ├── Exemple_Go/              → Application console SignalR
+│   └── Luncher_Go/              → Launcher WPF multi-clients
+│
+├── 📂 Rust/                     ← Exemples Rust
+│   ├── Exemple_Rust/            → Application console performante
+│   └── Luncher_Rust/            → Launcher WPF multi-clients
+│
 └── 📂 SmaRTC.Service_Launcher/  ← Launcher principal pour Docker
 ```
 
@@ -118,6 +126,16 @@ Application web Node.js avec :
 Application console Python avec :
 - **Exemple_Python** : Chat console coloré avec asyncio + SignalR
 - **Luncher_Python** : Launcher WPF multi-clients, pip install automatique
+
+### 🐹 Go - Exemples SDK ✅ Prêt
+Application Go performante avec :
+- **Exemple_Go** : Chat console avec goroutines + SignalR client
+- **Luncher_Go** : Launcher WPF multi-clients, go mod tidy/build automatiques
+
+### 🦀 Rust - Exemples SDK ✅ Prêt
+Application Rust ultra-performante avec :
+- **Exemple_Rust** : Chat console avec tokio + colored output
+- **Luncher_Rust** : Launcher WPF multi-clients, cargo build automatique
 ### �🟣 SmaRTC.Service_Launcher
 Application WPF moderne pour :
 - Démarrer/arrêter les services Docker
@@ -252,6 +270,17 @@ JWT_SECRET=votre_secret_jwt_256bits
 ---
 
 ## 🔄 Changelog
+
+### v2.6 (Janvier 2026) 🐹🦀
+- ✅ **Go Example** : Chat console avec goroutines + SignalR client
+- ✅ **Rust Example** : Chat console ultra-performant avec tokio + colored
+- 🎨 **Luncher_Go** : Launcher WPF multi-clients, go mod tidy/build
+- 🎨 **Luncher_Rust** : Launcher WPF multi-clients, cargo build
+- 📦 6 langages supportés : C#, Flutter, TypeScript, Python, Go, Rust
+
+### v2.5 (Janvier 2026) 🛡️
+- 🔒 **Protection propriétaire** : Licence restrictive, NOTICE, tous droits réservés
+- 📝 **README** : Badge Proprietary, avertissements légaux
 
 ### v2.4 (Janvier 2026) 🐍
 - ✅ **Python Example fonctionnel** : Chat console coloré avec asyncio + SignalR
