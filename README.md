@@ -82,6 +82,10 @@ SmaRTC/                          ← Dépôt racine
 │   ├── Exemple_TypeScript/      → Application web Node.js + Express
 │   └── Luncher_TypeScript/      → Launcher WPF C#
 │
+├── 📂 Python/                   ← Exemples Python
+│   ├── Exemple_Python/          → Application console colorée
+│   └── Luncher_Python/          → Launcher WPF multi-clients
+│
 └── 📂 SmaRTC.Service_Launcher/  ← Launcher principal pour Docker
 ```
 
@@ -109,7 +113,10 @@ Application Flutter moderne avec :
 Application web Node.js avec :
 - **Exemple_TypeScript** : App web chat Express + SignalR, interface moderne responsive
 - **Luncher_TypeScript** : Launcher WPF avec npm install/build/start automatiques
-
+### 🐍 Python - Exemples SDK ✅ Fonctionnel
+Application console Python avec :
+- **Exemple_Python** : Chat console coloré avec asyncio + SignalR
+- **Luncher_Python** : Launcher WPF multi-clients, pip install automatique
 ### �🟣 SmaRTC.Service_Launcher
 Application WPF moderne pour :
 - Démarrer/arrêter les services Docker
@@ -245,7 +252,12 @@ JWT_SECRET=votre_secret_jwt_256bits
 
 ## 🔄 Changelog
 
-### v2.3 (Janvier 2026) 🎉
+### v2.4 (Janvier 2026) 🐍
+- ✅ **Python Example fonctionnel** : Chat console coloré avec asyncio + SignalR
+- 🎨 **Luncher_Python** : Support multi-clients, pip install automatique
+- 📦 SDK Python avec aiohttp et signalrcore
+
+### v2.3 (Janvier 2026)
 - ✅ **TypeScript Example fonctionnel** : App web Node.js + Express + SignalR
 - 🔧 **Fix CORS SignalR** : `SetIsOriginAllowed` + `AllowCredentials` pour apps web
 - 🎨 **Luncher_TypeScript** : npm install/build/start automatiques
