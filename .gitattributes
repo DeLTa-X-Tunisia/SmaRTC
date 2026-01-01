@@ -1,21 +1,69 @@
+# =============================================================================
+# SmaRTC Workspace - Global .gitattributes
+# =============================================================================
+
 # Auto detect text files and perform LF normalization
 * text=auto
 
-# Source code
+# =============================================================================
+# Source Code
+# =============================================================================
+
+# C# / .NET
 *.cs text diff=csharp
+*.csx text diff=csharp
 *.csproj text
 *.sln text
-*.xaml text
-*.json text
-*.xml text
-*.yml text
-*.yaml text
-*.md text
-*.txt text
+*.props text
+*.targets text
 
-# Scripts
-*.ps1 text eol=crlf
+# JavaScript / TypeScript
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.mjs text
+*.cjs text
+
+# Dart / Flutter
+*.dart text
+*.yaml text
+*.yml text
+
+# Python
+*.py text diff=python
+*.pyw text diff=python
+*.pyx text diff=python
+
+# Rust
+*.rs text diff=rust
+
+# Swift / Kotlin
+*.swift text diff=swift
+*.kt text diff=kotlin
+*.kts text diff=kotlin
+
+# Web
+*.html text diff=html
+*.htm text diff=html
+*.css text diff=css
+*.scss text diff=css
+*.sass text diff=css
+*.less text diff=css
+
+# Config
+*.xml text
+*.xaml text
+*.config text
+*.md text diff=markdown
+*.txt text
+*.csv text
+
+# Shell
 *.sh text eol=lf
+*.bash text eol=lf
+*.ps1 text eol=crlf
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
@@ -23,53 +71,47 @@
 Dockerfile text
 docker-compose*.yml text
 
-# Web
-*.html text
-*.css text
-*.js text
-*.ts text
-*.jsx text
-*.tsx text
+# =============================================================================
+# Binary Files
+# =============================================================================
 
-# Config
-*.config text
-*.conf text
-*.ini text
-*.env text
-
-# Binary files
+# Images
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.gif binary
 *.ico binary
+*.webp binary
+*.svg text
+
+# Fonts
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.rar binary
+
+# Executables
 *.exe binary
 *.dll binary
-*.pdb binary
-*.zip binary
-*.tar.gz binary
+*.so binary
+*.dylib binary
 
-# Flutter/Dart
-*.dart text
-pubspec.yaml text
-pubspec.lock text
+# Database
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
 
-# Python
-*.py text diff=python
-requirements.txt text
-
-# Rust
-*.rs text diff=rust
-Cargo.toml text
-
-# Swift
-*.swift text diff=swift
-
-# Kotlin
-*.kt text diff=kotlin
-*.kts text
-
-# Documentation
+# Documents
 *.pdf binary
 *.doc binary
 *.docx binary
+*.xls binary
+*.xlsx binary
