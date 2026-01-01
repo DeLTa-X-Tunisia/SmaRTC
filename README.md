@@ -1,15 +1,18 @@
-# 🚀 SmaRTC - Smart Real-Time Communication Platform
-
 <div align="center">
 
-![SmaRTC Logo](SmaRTC-core/docs/logo.png)
+# 🚀 SmaRTC - Smart Real-Time Communication Platform 🚀 
 
-**Plateforme WebRTC complète avec signalisation, STUN/TURN et outils de développement**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)](https://www.docker.com/)
-[![SignalR](https://img.shields.io/badge/SignalR-Real--time-purple)](https://learn.microsoft.com/aspnet/signalr/)
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg" 
+       alt="Drapeau Tunisien" width="150" height="150" />
+
+  <p><strong>Plateforme WebRTC complète avec signalisation, STUN/TURN et outils de développement</strong></p>
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
+  [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)](https://www.docker.com/)
+  [![SignalR](https://img.shields.io/badge/SignalR-Real--time-purple)](https://learn.microsoft.com/aspnet/signalr/)
 
 </div>
 
