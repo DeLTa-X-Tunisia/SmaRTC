@@ -84,20 +84,6 @@ func (c *SmaRTCClient) Connect() error {
 		signalr.WithConnector(func() (signalr.Connection, error) {
 			return signalr.NewHTTPConnection(c.ctx, c.hubURL)
 		}),
-		signalr.WithAutoReconnect(func(ctx context.Context, r signalr.Retryer) error {
-			// Custom reconnection logic
-			for {
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				default:
-					if r.NextTry(ctx) {
-						return nil
-					}
-					time.Sleep(time.Second * 2)
-				}
-			}
-		}),
 	)
 
 	if err != nil {
