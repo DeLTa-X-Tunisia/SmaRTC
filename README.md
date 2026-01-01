@@ -9,7 +9,8 @@
 
   <p><strong>Plateforme WebRTC complète avec signalisation, STUN/TURN et outils de développement 2026</strong></p>
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+  [![Demo Only](https://img.shields.io/badge/⚠️-Demo%20Only-orange.svg)](NOTICE)
   [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
   [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)](https://www.docker.com/)
   [![SignalR](https://img.shields.io/badge/SignalR-Real--time-purple)](https://learn.microsoft.com/aspnet/signalr/)
@@ -32,7 +33,7 @@
 
 | Avantage | Description |
 |----------|-------------|
-| 🔓 **Open Source** | Code source libre sous licence MIT, modifiable et extensible |
+| 🎯 **Portfolio** | Projet de démonstration technique - Tous droits réservés |
 | 🏗️ **Architecture complète** | Tout inclus : API, signalisation, STUN/TURN, monitoring |
 | 🌐 **Multi-plateforme** | SDKs pour C#, JavaScript, Flutter, Python, Rust, Swift, Kotlin |
 | 🐳 **Docker Ready** | Déploiement en une commande avec Docker Compose |
@@ -289,15 +290,39 @@ JWT_SECRET=votre_secret_jwt_256bits
 
 ---
 
+## ⚠️ Avertissement Important
+
+> **Ce projet est publié à titre de démonstration uniquement.**
+>
+> 🚫 **INTERDICTIONS :**
+> - Copier tout ou partie du code source
+> - Utiliser le code dans vos projets personnels ou commerciaux
+> - Redistribuer le code sous quelque forme que ce soit
+> - Créer des œuvres dérivées basées sur ce code
+> - Fork ce dépôt à des fins autres que la contribution
+>
+> ✅ **AUTORISÉ :**
+> - Consulter le code à des fins éducatives
+> - Référencer ce projet (avec attribution)
+> - Contacter l'auteur pour des demandes de licence
+
+---
+
 ## 📄 Licence
 
-Ce projet est sous licence MIT. Voir [LICENSE](SmaRTC-core/LICENSE) pour plus de détails.
+**© 2026 Mounir Azizi - DeLTa-X Tunisia - Tous droits réservés**
+
+Ce projet est sous licence propriétaire. Voir [LICENSE](LICENSE) et [NOTICE](NOTICE) pour plus de détails.
+
+Toute utilisation non autorisée sera poursuivie conformément aux lois applicables sur la propriété intellectuelle.
 
 ---
 
 <div align="center">
 
-**Développé avec ❤️ par [DeLTa-X Tunisia](https://github.com/DeLTa-X-Tunisia)**
+**Développé avec ❤️ par [Mounir Azizi](https://github.com/DeLTa-X-Tunisia) 🇹🇳**
+
+*Ce dépôt est un projet portfolio - Merci de respecter le travail de l'auteur*
 
 </div>
 
