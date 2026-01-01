@@ -27,7 +27,7 @@ class SmaRTCExampleApp extends StatelessWidget {
         textTheme: GoogleFonts.interTextTheme(
           ThemeData.dark().textTheme,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 4,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

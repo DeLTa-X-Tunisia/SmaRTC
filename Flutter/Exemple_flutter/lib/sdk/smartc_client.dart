@@ -205,7 +205,8 @@ class SmaRTCClient {
     if (_hubConnection == null || _currentRoom == null) return;
 
     try {
-      await _hubConnection!.invoke('LeaveSession', args: [_currentRoom]);
+      final room = _currentRoom!;
+      await _hubConnection!.invoke('LeaveSession', args: [room]);
       _currentRoom = null;
     } catch (e) {
       onError?.call('Erreur pour quitter la room: $e');
@@ -227,7 +228,8 @@ class SmaRTCClient {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      await _hubConnection!.invoke('SendSignalToSession', args: [_currentRoom, signalData]);
+      final room = _currentRoom!;
+      await _hubConnection!.invoke('SendSignalToSession', args: [room, signalData]);
       
       // Ajouter le message localement
       onMessageReceived?.call(ChatMessage(
