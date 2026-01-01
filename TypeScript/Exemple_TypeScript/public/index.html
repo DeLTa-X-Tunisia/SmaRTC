@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmaRTC TypeScript Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 50%, #3730a3 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #a5b4fc;
+            margin-bottom: 32px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #a5b4fc;
+            margin-bottom: 6px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-group input:focus {
+            outline: 2px solid #6366f1;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .btn-primary:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Chat Screen */
+        .chat-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .chat-screen.active {
+            display: flex;
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .room-status {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .room-name {
+            font-weight: 600;
+        }
+
+        .room-user {
+            font-size: 12px;
+            color: #a5b4fc;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            max-width: 80%;
+        }
+
+        .message.own {
+            margin-left: auto;
+        }
+
+        .message.other {
+            margin-right: auto;
+        }
+
+        .message.system {
+            text-align: center;
+            max-width: 100%;
+        }
+
+        .message-sender {
+            font-size: 12px;
+            color: #a5b4fc;
+            margin-bottom: 4px;
+        }
+
+        .message.own .message-sender {
+            text-align: right;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-break: break-word;
+        }
+
+        .message.own .message-content {
+            background: #6366f1;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.other .message-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.system .message-content {
+            background: transparent;
+            color: #a5b4fc;
+            font-size: 14px;
+            padding: 8px;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 4px;
+        }
+
+        .message.own .message-time {
+            text-align: right;
+        }
+
+        .message-input-container {
+            display: flex;
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-send {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #6366f1;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-send:hover {
+            background: #4f46e5;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hint {
+            text-align: center;
+            color: #a5b4fc;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <div class="logo">📹</div>
+            <h1 class="title">SmaRTC</h1>
+            <p class="subtitle">TypeScript Chat Demo</p>
+            
+            <div class="login-card">
+                <div class="error-message" id="errorMessage"></div>
+                
+                <div class="input-group">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" id="username" placeholder="Entrez votre pseudo">
+                </div>
+                
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="password" value="12345678">
+                </div>
+                
+                <div class="input-group">
+                    <label>Room</label>
+                    <input type="text" id="room" value="Room_typescript">
+                </div>
+                
+                <button class="btn btn-primary" id="btnConnect" onclick="connect()">
+                    Se connecter
+                </button>
+                
+                <p class="hint">Mot de passe par défaut: 12345678</p>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div class="chat-screen" id="chatScreen">
+            <div class="chat-header">
+                <div class="room-info">
+                    <div class="room-status"></div>
+                    <div>
+                        <div class="room-name" id="roomNameDisplay">Room</div>
+                        <div class="room-user" id="usernameDisplay">User</div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="disconnect()">⬅ Quitter</button>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <!-- Messages will be added here -->
+            </div>
+
+            <div class="message-input-container">
+                <input type="text" class="message-input" id="messageInput" 
+                       placeholder="Écrivez un message..." 
+                       onkeypress="handleKeyPress(event)">
+                <button class="btn-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:8080';
+        const SIGNAL_HUB_URL = 'http://localhost:5001/signalhub';
+
+        // State
+        let hubConnection = null;
+        let currentUser = null;
+        let currentRoom = null;
+
+        // Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const chatScreen = document.getElementById('chatScreen');
+        const errorMessage = document.getElementById('errorMessage');
+        const btnConnect = document.getElementById('btnConnect');
+        const messagesContainer = document.getElementById('messagesContainer');
+
+        // Afficher une erreur
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('show');
+        }
+
+        // Ajouter un message au chat
+        function addMessage(sender, content, isOwn = false, isSystem = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwn ? 'own' : isSystem ? 'system' : 'other'}`;
+
+            const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+            if (isSystem) {
+                messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+            } else {
+                messageDiv.innerHTML = `
+                    ${!isOwn ? `<div class="message-sender">${sender}</div>` : ''}
+                    <div class="message-content">${content}</div>
+                    <div class="message-time">${time}</div>
+                `;
+            }
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Connexion
+        async function connect() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const room = document.getElementById('room').value.trim();
+
+            if (!username) {
+                showError('Veuillez entrer un nom d\'utilisateur');
+                return;
+            }
+
+            hideError();
+            btnConnect.disabled = true;
+            btnConnect.innerHTML = '<span class="loading"></span> Connexion...';
+
+            try {
+                // 1. Register (ignore si existe)
+                await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                // 2. Login
+                const loginRes = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!loginRes.ok) {
+                    if (loginRes.status === 429) throw new Error('Trop de tentatives. Attendez quelques secondes.');
+                    if (loginRes.status === 401) throw new Error('Mot de passe incorrect');
+                    throw new Error(`Erreur de connexion: ${loginRes.status}`);
+                }
+
+                const loginData = await loginRes.json();
+                currentUser = { username, token: loginData.token };
+                currentRoom = room;
+
+                // 3. Connect to SignalR
+                hubConnection = new signalR.HubConnectionBuilder()
+                    .withUrl(SIGNAL_HUB_URL)
+                    .withAutomaticReconnect()
+                    .build();
+
+                // Event handlers
+                hubConnection.on('SendSignal', (signal, user) => {
+                    try {
+                        const data = JSON.parse(signal);
+                        if (data.type === 'chat' && data.sender !== currentUser.username) {
+                            addMessage(data.sender, data.content, false, false);
+                        }
+                    } catch (e) { }
+                });
+
+                hubConnection.on('NewUserArrived', (user) => {
+                    addMessage('Système', `${user} a rejoint la room`, false, true);
+                });
+
+                hubConnection.on('UserLeft', (user) => {
+                    addMessage('Système', `${user} a quitté la room`, false, true);
+                });
+
+                await hubConnection.start();
+
+                // 4. Join room
+                await hubConnection.invoke('JoinSession', room, username);
+
+                // Switch to chat screen
+                loginScreen.classList.add('hidden');
+                chatScreen.classList.add('active');
+                document.getElementById('roomNameDisplay').textContent = room;
+                document.getElementById('usernameDisplay').textContent = username;
+
+                addMessage('Système', `Bienvenue dans ${room} !`, false, true);
+
+            } catch (e) {
+                showError(e.message || 'Erreur de connexion');
+            } finally {
+                btnConnect.disabled = false;
+                btnConnect.textContent = 'Se connecter';
+            }
+        }
+
+        // Envoyer un message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || !hubConnection) return;
+
+            try {
+                const signalData = JSON.stringify({
+                    type: 'chat',
+                    sender: currentUser.username,
+                    content: message,
+                    timestamp: new Date().toISOString()
+                });
+
+                await hubConnection.invoke('SendSignalToSession', currentRoom, signalData, currentUser.username);
+                addMessage(currentUser.username, message, true, false);
+                input.value = '';
+            } catch (e) {
+                showError('Erreur d\'envoi du message');
+            }
+        }
+
+        // Gérer Enter
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Déconnexion
+        async function disconnect() {
+            if (hubConnection) {
+                try {
+                    await hubConnection.invoke('LeaveSession', currentRoom, currentUser.username);
+                    await hubConnection.stop();
+                } catch (e) { }
+                hubConnection = null;
+            }
+
+            currentUser = null;
+            currentRoom = null;
+            messagesContainer.innerHTML = '';
+
+            chatScreen.classList.remove('active');
+            loginScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

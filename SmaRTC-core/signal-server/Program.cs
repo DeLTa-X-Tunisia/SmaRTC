@@ -2,14 +2,15 @@ using TunRTC.SignalServer.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS
+// Add CORS - Configure for SignalR with credentials
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)  // Allow any origin
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();  // Required for SignalR
     });
 });
 
