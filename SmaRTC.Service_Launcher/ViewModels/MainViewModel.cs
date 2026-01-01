@@ -44,11 +44,10 @@ namespace SmaRTC.Service_Launcher.ViewModels
 
         public MainViewModel()
         {
-            // Find SmaRTC project path
-            var basePath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
-            var projectPath = FindSmaRTCPath(basePath!);
+            // Find SmaRTC project path - utilise le dossier parent du launcher
+            var basePath = FindBasePath();
             
-            _dockerService = new DockerService(projectPath);
+            _dockerService = new DockerService(basePath);
             _dockerService.OnLog += OnLogReceived;
 
             InitializeServices();
@@ -63,27 +62,40 @@ namespace SmaRTC.Service_Launcher.ViewModels
             _ = InitializeAsync();
         }
 
-        private string FindSmaRTCPath(string startPath)
+        private string FindBasePath()
         {
-            // Try to find SmaRTC folder
-            var current = startPath;
-            for (int i = 0; i < 10; i++)
+            // Ordre de priorité pour trouver le dossier de base
+            var candidates = new[]
             {
-                var smartcPath = Path.Combine(current!, "SmaRTC");
-                if (Directory.Exists(smartcPath) && 
-                    File.Exists(Path.Combine(smartcPath, "deploy", "docker-compose.yml")))
-                {
-                    return smartcPath;
-                }
+                // 1. Dossier parent du launcher (SmaRTC Start)
+                Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..")),
+                
+                // 2. Desktop/SmaRTC Start
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SmaRTC Start"),
+                
+                // 3. Dossier contenant SmaRTC
+                Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..")),
+            };
 
-                var parent = Directory.GetParent(current!);
-                if (parent == null) break;
-                current = parent.FullName;
+            foreach (var candidate in candidates)
+            {
+                // Vérifier si le docker-compose.yml existe dans ce chemin
+                var composePath = Path.Combine(candidate, "SmaRTC", "SmaRTC-core", "deploy", "docker-compose.yml");
+                if (File.Exists(composePath))
+                {
+                    return candidate;
+                }
+                
+                // Ancienne structure
+                composePath = Path.Combine(candidate, "SmaRTC-core", "deploy", "docker-compose.yml");
+                if (File.Exists(composePath))
+                {
+                    return candidate;
+                }
             }
 
-            // Default fallback
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), 
-                "SmaRTC Start", "SmaRTC");
+            // Fallback
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SmaRTC Start");
         }
 
         private void InitializeServices()
@@ -104,6 +116,15 @@ namespace SmaRTC.Service_Launcher.ViewModels
         private async Task InitializeAsync()
         {
             AddLog(LogLevel.Info, "🚀 SmaRTC Service Launcher démarré");
+            
+            // Afficher le chemin du docker-compose.yml trouvé
+            var composePath = _dockerService.GetComposeFilePath();
+            AddLog(LogLevel.Info, $"📁 Docker Compose: {composePath}");
+            
+            if (!File.Exists(composePath))
+            {
+                AddLog(LogLevel.Warning, "⚠️ Fichier docker-compose.yml non trouvé!");
+            }
             
             IsLoading = true;
             StatusText = "Vérification de Docker...";

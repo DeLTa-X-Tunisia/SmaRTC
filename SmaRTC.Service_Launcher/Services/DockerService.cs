@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SmaRTC.Service_Launcher.Models;
@@ -13,6 +14,10 @@ namespace SmaRTC.Service_Launcher.Services
     {
         private readonly string _composeFilePath;
         private readonly string _projectPath;
+        private static readonly string SettingsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SmaRTC.Service_Launcher",
+            "settings.json");
 
         public event Action<LogEntry>? OnLog;
         public event Action<string, ServiceStatus, string>? OnServiceStatusChanged;
@@ -20,8 +25,105 @@ namespace SmaRTC.Service_Launcher.Services
         public DockerService(string projectPath)
         {
             _projectPath = projectPath;
-            _composeFilePath = Path.Combine(projectPath, "deploy", "docker-compose.yml");
+            _composeFilePath = FindDockerComposeFile(projectPath);
         }
+
+        /// <summary>
+        /// Recherche le fichier docker-compose.yml dans plusieurs emplacements possibles
+        /// </summary>
+        private string FindDockerComposeFile(string basePath)
+        {
+            // 1. Vérifier dans les settings utilisateur
+            var savedPath = LoadSavedComposePath();
+            if (!string.IsNullOrEmpty(savedPath) && File.Exists(savedPath))
+            {
+                return savedPath;
+            }
+
+            // 2. Liste des chemins possibles (par ordre de priorité)
+            var possiblePaths = new[]
+            {
+                // Nouvelle structure (après réorganisation)
+                Path.Combine(basePath, "SmaRTC-core", "deploy", "docker-compose.yml"),
+                Path.Combine(basePath, "SmaRTC", "SmaRTC-core", "deploy", "docker-compose.yml"),
+                
+                // Ancienne structure
+                Path.Combine(basePath, "deploy", "docker-compose.yml"),
+                Path.Combine(basePath, "SmaRTC", "deploy", "docker-compose.yml"),
+                
+                // Chemins relatifs au launcher
+                Path.Combine(basePath, "..", "SmaRTC", "SmaRTC-core", "deploy", "docker-compose.yml"),
+                Path.Combine(basePath, "..", "SmaRTC-core", "deploy", "docker-compose.yml"),
+                
+                // Chemin absolu par défaut (Desktop)
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), 
+                    "SmaRTC Start", "SmaRTC", "SmaRTC-core", "deploy", "docker-compose.yml"),
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                var normalizedPath = Path.GetFullPath(path);
+                if (File.Exists(normalizedPath))
+                {
+                    // Sauvegarder pour les prochaines utilisations
+                    SaveComposePath(normalizedPath);
+                    return normalizedPath;
+                }
+            }
+
+            // Retourner le chemin le plus probable même s'il n'existe pas (pour le message d'erreur)
+            return Path.Combine(basePath, "SmaRTC-core", "deploy", "docker-compose.yml");
+        }
+
+        private string? LoadSavedComposePath()
+        {
+            try
+            {
+                if (File.Exists(SettingsFile))
+                {
+                    var json = File.ReadAllText(SettingsFile);
+                    var settings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                    if (settings?.TryGetValue("DockerComposePath", out var path) == true)
+                    {
+                        return path;
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private void SaveComposePath(string path)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(SettingsFile)!;
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                var settings = new Dictionary<string, string> { ["DockerComposePath"] = path };
+                File.WriteAllText(SettingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Permet de définir manuellement le chemin du fichier docker-compose.yml
+        /// </summary>
+        public void SetComposeFilePath(string path)
+        {
+            if (File.Exists(path))
+            {
+                SaveComposePath(path);
+            }
+        }
+
+        /// <summary>
+        /// Retourne le chemin actuel du fichier docker-compose.yml
+        /// </summary>
+        public string GetComposeFilePath() => _composeFilePath;
 
         public async Task<bool> IsDockerRunningAsync()
         {
