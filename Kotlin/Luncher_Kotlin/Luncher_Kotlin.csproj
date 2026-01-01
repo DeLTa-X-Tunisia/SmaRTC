@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Title>SmaRTC Kotlin Launcher</Title>
+    <Description>Launcher WPF pour l'exemple Kotlin SmaRTC SDK</Description>
+    <Company>DeLTa-X Tunisia</Company>
+    <Copyright>© 2026 Mounir Azizi - DeLTa-X Tunisia - All Rights Reserved</Copyright>
+    <Version>1.0.0</Version>
+    <AssemblyName>SmaRTC.Kotlin.Launcher</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
+  </ItemGroup>
+
+</Project>

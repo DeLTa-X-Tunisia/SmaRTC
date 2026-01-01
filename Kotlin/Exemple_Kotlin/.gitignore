@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+gradle-8.5/
+
+# IDE
+.idea/
+*.iml
+
+# Compiled
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# OS
+.DS_Store
+Thumbs.db
