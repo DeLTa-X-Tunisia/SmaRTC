@@ -219,9 +219,31 @@ namespace Luncher_Go
 
         private async Task RunGoCommandAsync(params string[] args)
         {
+            // Refresh PATH to include Go
+            var machinePath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine) ?? "";
+            var userPath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "";
+            var fullPath = $"{machinePath};{userPath}";
+            
+            // Find Go executable
+            var goPath = "go";
+            var goPaths = new[] { 
+                @"C:\Program Files\Go\bin\go.exe",
+                @"C:\Go\bin\go.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "go", "bin", "go.exe")
+            };
+            
+            foreach (var path in goPaths)
+            {
+                if (File.Exists(path))
+                {
+                    goPath = path;
+                    break;
+                }
+            }
+
             var startInfo = new ProcessStartInfo
             {
-                FileName = "go",
+                FileName = goPath,
                 WorkingDirectory = _projectPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -230,6 +252,8 @@ namespace Luncher_Go
                 StandardOutputEncoding = Encoding.UTF8,
                 StandardErrorEncoding = Encoding.UTF8
             };
+            
+            startInfo.Environment["Path"] = fullPath;
 
             foreach (var arg in args)
             {

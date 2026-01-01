@@ -5,11 +5,18 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/philippseith/signalr"
 )
+
+// NullLogger disables all logging
+type NullLogger struct{}
+
+func (NullLogger) Log(keyvals ...interface{}) error { return nil }
 
 // SignalHandler handles incoming signals
 type SignalHandler func(user, message string)
@@ -78,12 +85,16 @@ func NewSmaRTCClient(hubURL string) *SmaRTCClient {
 func (c *SmaRTCClient) Connect() error {
 	receiver := &Receiver{client: c}
 
-	// Create the SignalR client
+	// Disable debug logging
+	log.SetOutput(io.Discard)
+
+	// Create the SignalR client with disabled logging
 	client, err := signalr.NewClient(c.ctx,
 		signalr.WithReceiver(receiver),
 		signalr.WithConnector(func() (signalr.Connection, error) {
 			return signalr.NewHTTPConnection(c.ctx, c.hubURL)
 		}),
+		signalr.Logger(NullLogger{}, false),
 	)
 
 	if err != nil {
