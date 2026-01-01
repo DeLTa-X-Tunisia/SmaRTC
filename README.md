@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 SmaRTC - Smart Real-Time Communication Platform 🚀 
+# 🚀 SmaRTC - Smart Real-Time Communication Platform 🚀
 
 
 
