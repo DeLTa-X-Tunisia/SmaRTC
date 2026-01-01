@@ -88,15 +88,15 @@ Le cœur de la plateforme WebRTC :
 - **Signal Server** : Hub SignalR pour la signalisation WebRTC temps réel
 - **Infrastructure Docker** : 9 services orchestrés (PostgreSQL, Redis, Nginx, Coturn, Janus, Grafana, Prometheus)
 
-### 🟢 C# - Exemples SDK
+### 🟢 C# - Exemples SDK ✅ Fonctionnel
 Démonstration du SDK C# avec :
-- **Exemple_csharp** : Application console interactive de chat
-- **Luncher_csharp** : Interface WPF pour lancer plusieurs clients
+- **Exemple_csharp** : Application console interactive de chat temps réel
+- **Luncher_csharp** : Interface WPF pour lancer plusieurs clients simultanément
 
-### 🎯 Flutter - Exemples SDK
+### 🎯 Flutter - Exemples SDK ✅ Fonctionnel
 Application Flutter moderne avec :
-- **Exemple_flutter** : Application de chat avec interface Material 3
-- **Luncher_flutter** : Launcher C# avec Hot Reload/Restart intégré
+- **Exemple_flutter** : Application de chat avec interface Material 3, synchronisation temps réel multi-clients
+- **Luncher_flutter** : Launcher C# avec Hot Reload/Restart, sélection de device, copie des logs
 
 ### 🟣 SmaRTC.Service_Launcher
 Application WPF moderne pour :
@@ -233,8 +233,20 @@ JWT_SECRET=votre_secret_jwt_256bits
 
 ## 🔄 Changelog
 
+### v2.2 (Janvier 2026) 🎉
+- ✅ **Flutter Example fonctionnel** : Chat temps réel multi-clients
+- ✅ **C# Example fonctionnel** : Console chat avec SDK SignalR
+- 🔧 **Corrections SDK Flutter** :
+  - `JoinSession` / `LeaveSession` avec username
+  - `SendSignalToSession` avec 3 arguments
+  - Événements SignalR corrigés (`SendSignal`, `NewUserArrived`)
+- 🎨 **Launchers améliorés** :
+  - Flutter Launcher avec Hot Reload/Restart, Copy Logs
+  - Service Launcher avec Start/Stop individuel par service
+- 🧹 **Structure nettoyée** : Suppression des doublons
+
 ### v2.1 (Janvier 2026)
-- ✨ **Nouvelle structure workspace** : Organisation en SmaRTC-core, C#, Service_Launcher
+- ✨ **Nouvelle structure workspace** : Organisation en SmaRTC-core, C#, Flutter
 - 🎨 **SmaRTC.Service_Launcher** : Application WPF pour gérer Docker
 - 📦 **Exemples C#** : Exemple_csharp et Luncher_csharp
 - 🧹 **Nettoyage** : Suppression node_modules, mise à jour .gitignore

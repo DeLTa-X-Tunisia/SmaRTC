@@ -77,7 +77,7 @@ class SmaRTCClient {
   bool get isConnected => _isConnected;
 
   /// Inscription d'un nouvel utilisateur
-  Future<bool> registerAsync(String username, String password) async {
+  Future<(bool, String)> registerAsync(String username, String password) async {
     try {
       final response = await http.post(
         Uri.parse('${config.apiBaseUrl}/api/auth/register'),
@@ -90,23 +90,28 @@ class SmaRTCClient {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
+        return (true, 'Inscription réussie');
       } else if (response.statusCode == 400 || response.statusCode == 409) {
         // Utilisateur existe déjà - OK pour login
         final body = response.body.toLowerCase();
-        if (body.contains('already') || body.contains('exists')) {
-          return true;
+        if (body.contains('already') || body.contains('exists') || body.contains('username')) {
+          return (true, 'Utilisateur existant');
         }
+        return (true, 'OK'); // Considérer comme succès pour continuer
+      } else if (response.statusCode == 429) {
+        // Rate limited - attendre et réessayer
+        await Future.delayed(const Duration(seconds: 2));
+        return (true, 'Rate limited, continuer...'); 
       }
-      return false;
+      return (false, 'Erreur ${response.statusCode}: ${response.body}');
     } catch (e) {
       onError?.call('Erreur d\'inscription: $e');
-      return false;
+      return (false, 'Exception: $e');
     }
   }
 
   /// Connexion utilisateur
-  Future<bool> loginAsync(String username, String password) async {
+  Future<(bool, String)> loginAsync(String username, String password) async {
     try {
       final response = await http.post(
         Uri.parse('${config.apiBaseUrl}/api/auth/login'),
@@ -124,12 +129,18 @@ class SmaRTCClient {
           username: username,
           token: data['token'],
         );
-        return true;
+        return (true, 'Connexion réussie');
+      } else if (response.statusCode == 429) {
+        return (false, 'Trop de tentatives. Attendez quelques secondes.');
+      } else if (response.statusCode == 401) {
+        return (false, 'Mot de passe incorrect');
+      } else if (response.statusCode == 404) {
+        return (false, 'Utilisateur non trouvé');
       }
-      return false;
+      return (false, 'Erreur ${response.statusCode}: ${response.body}');
     } catch (e) {
       onError?.call('Erreur de connexion: $e');
-      return false;
+      return (false, 'Exception: $e');
     }
   }
 
@@ -141,11 +152,10 @@ class SmaRTCClient {
           .withAutomaticReconnect()
           .build();
 
-      // Handlers pour les événements
-      _hubConnection!.on('ReceiveSignal', _handleReceiveSignal);
-      _hubConnection!.on('UserJoined', _handleUserJoined);
+      // Handlers pour les événements (noms correspondant au serveur SignalHub.cs)
+      _hubConnection!.on('SendSignal', _handleReceiveSignal);
+      _hubConnection!.on('NewUserArrived', _handleUserJoined);
       _hubConnection!.on('UserLeft', _handleUserLeft);
-      _hubConnection!.on('ReceiveMessage', _handleReceiveMessage);
 
       _hubConnection!.onclose(({error}) {
         _isConnected = false;
@@ -181,14 +191,16 @@ class SmaRTCClient {
       return false;
     }
 
+    final username = _currentUser?.username ?? 'Anonymous';
+
     try {
-      await _hubConnection!.invoke('JoinSession', args: [roomName]);
+      await _hubConnection!.invoke('JoinSession', args: [roomName, username]);
       _currentRoom = roomName;
       
       // Message système
       onMessageReceived?.call(ChatMessage(
         sender: 'Système',
-        content: '${_currentUser?.username ?? "Vous"} a rejoint la room $roomName',
+        content: '$username a rejoint la room $roomName',
         timestamp: DateTime.now(),
         isSystem: true,
       ));
@@ -204,9 +216,11 @@ class SmaRTCClient {
   Future<void> leaveRoomAsync() async {
     if (_hubConnection == null || _currentRoom == null) return;
 
+    final username = _currentUser?.username ?? 'Anonymous';
+
     try {
       final room = _currentRoom!;
-      await _hubConnection!.invoke('LeaveSession', args: [room]);
+      await _hubConnection!.invoke('LeaveSession', args: [room, username]);
       _currentRoom = null;
     } catch (e) {
       onError?.call('Erreur pour quitter la room: $e');
@@ -220,20 +234,22 @@ class SmaRTCClient {
       return false;
     }
 
+    final username = _currentUser?.username ?? 'Anonymous';
+
     try {
       final signalData = jsonEncode({
         'type': 'chat',
-        'sender': _currentUser?.username ?? 'Anonymous',
+        'sender': username,
         'content': message,
         'timestamp': DateTime.now().toIso8601String(),
       });
 
       final room = _currentRoom!;
-      await _hubConnection!.invoke('SendSignalToSession', args: [room, signalData]);
+      await _hubConnection!.invoke('SendSignalToSession', args: [room, signalData, username]);
       
       // Ajouter le message localement
       onMessageReceived?.call(ChatMessage(
-        sender: _currentUser?.username ?? 'Moi',
+        sender: username,
         content: message,
         timestamp: DateTime.now(),
       ));

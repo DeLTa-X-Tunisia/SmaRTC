@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace SmaRTC.Service_Launcher.Models
 {
@@ -22,6 +23,11 @@ namespace SmaRTC.Service_Launcher.Models
         private ServiceStatus _status = ServiceStatus.Unknown;
         private string _statusMessage = string.Empty;
         private string _icon = "🔲";
+        private bool _isActionInProgress;
+
+        // Commands pour les boutons individuels
+        public ICommand? StartCommand { get; set; }
+        public ICommand? StopCommand { get; set; }
 
         public string Name
         {
@@ -56,6 +62,10 @@ namespace SmaRTC.Service_Launcher.Models
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(StatusIcon));
                 OnPropertyChanged(nameof(StatusColor));
+                OnPropertyChanged(nameof(StartButtonColor));
+                OnPropertyChanged(nameof(StopButtonColor));
+                OnPropertyChanged(nameof(CanStart));
+                OnPropertyChanged(nameof(CanStop));
             }
         }
 
@@ -69,6 +79,18 @@ namespace SmaRTC.Service_Launcher.Models
         {
             get => _icon;
             set { _icon = value; OnPropertyChanged(); }
+        }
+
+        public bool IsActionInProgress
+        {
+            get => _isActionInProgress;
+            set
+            {
+                _isActionInProgress = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanStart));
+                OnPropertyChanged(nameof(CanStop));
+            }
         }
 
         public string StatusIcon => Status switch
@@ -90,6 +112,28 @@ namespace SmaRTC.Service_Launcher.Models
             ServiceStatus.Error => "#F44336",
             _ => "#9E9E9E"
         };
+
+        // Couleur du bouton Start (vert si arrêté = peut démarrer)
+        public string StartButtonColor => Status switch
+        {
+            ServiceStatus.Stopped => "#4CAF50",
+            ServiceStatus.Error => "#4CAF50",
+            ServiceStatus.Unknown => "#4CAF50",
+            _ => "#555555"
+        };
+
+        // Couleur du bouton Stop (rouge si démarré = peut arrêter)
+        public string StopButtonColor => Status switch
+        {
+            ServiceStatus.Running => "#F44336",
+            _ => "#555555"
+        };
+
+        // Peut-on démarrer ce service ?
+        public bool CanStart => !IsActionInProgress && Status != ServiceStatus.Running && Status != ServiceStatus.Starting;
+
+        // Peut-on arrêter ce service ?
+        public bool CanStop => !IsActionInProgress && Status == ServiceStatus.Running;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -100,17 +100,99 @@ namespace SmaRTC.Service_Launcher.ViewModels
 
         private void InitializeServices()
         {
-            Services.Add(new ServiceInfo { Name = "API", ContainerName = "api", Icon = "🌐", Description = "REST API Server", Port = "8080" });
-            Services.Add(new ServiceInfo { Name = "Signal Server", ContainerName = "signal-server", Icon = "📡", Description = "WebRTC Signaling", Port = "5001" });
-            Services.Add(new ServiceInfo { Name = "PostgreSQL", ContainerName = "postgres", Icon = "🐘", Description = "Base de données", Port = "5432" });
-            Services.Add(new ServiceInfo { Name = "Redis", ContainerName = "redis", Icon = "⚡", Description = "Cache en mémoire", Port = "6379" });
-            Services.Add(new ServiceInfo { Name = "Nginx", ContainerName = "nginx", Icon = "🔀", Description = "Reverse Proxy", Port = "80" });
-            Services.Add(new ServiceInfo { Name = "Coturn", ContainerName = "coturn", Icon = "🔄", Description = "STUN/TURN Server", Port = "3478" });
-            Services.Add(new ServiceInfo { Name = "Janus", ContainerName = "janus", Icon = "🎥", Description = "Media Server", Port = "8088" });
-            Services.Add(new ServiceInfo { Name = "Grafana", ContainerName = "grafana", Icon = "📊", Description = "Monitoring Dashboard", Port = "3000" });
-            Services.Add(new ServiceInfo { Name = "Prometheus", ContainerName = "prometheus", Icon = "📈", Description = "Metrics Collection", Port = "9090" });
+            var services = new[]
+            {
+                new ServiceInfo { Name = "API", ContainerName = "api", Icon = "🌐", Description = "REST API Server", Port = "8080" },
+                new ServiceInfo { Name = "Signal Server", ContainerName = "signal-server", Icon = "📡", Description = "WebRTC Signaling", Port = "5001" },
+                new ServiceInfo { Name = "PostgreSQL", ContainerName = "postgres", Icon = "🐘", Description = "Base de données", Port = "5432" },
+                new ServiceInfo { Name = "Redis", ContainerName = "redis", Icon = "⚡", Description = "Cache en mémoire", Port = "6379" },
+                new ServiceInfo { Name = "Nginx", ContainerName = "nginx", Icon = "🔀", Description = "Reverse Proxy", Port = "80" },
+                new ServiceInfo { Name = "Coturn", ContainerName = "coturn", Icon = "🔄", Description = "STUN/TURN Server", Port = "3478" },
+                new ServiceInfo { Name = "Janus", ContainerName = "janus", Icon = "🎥", Description = "Media Server", Port = "8088" },
+                new ServiceInfo { Name = "Grafana", ContainerName = "grafana", Icon = "📊", Description = "Monitoring Dashboard", Port = "3000" },
+                new ServiceInfo { Name = "Prometheus", ContainerName = "prometheus", Icon = "📈", Description = "Metrics Collection", Port = "9090" }
+            };
+
+            foreach (var service in services)
+            {
+                // Assigner les commandes individuelles
+                service.StartCommand = new RelayCommand(async () => await StartSingleServiceAsync(service));
+                service.StopCommand = new RelayCommand(async () => await StopSingleServiceAsync(service));
+                Services.Add(service);
+            }
 
             TotalCount = Services.Count;
+        }
+
+        private async Task StartSingleServiceAsync(ServiceInfo service)
+        {
+            if (service.IsActionInProgress) return;
+
+            service.IsActionInProgress = true;
+            service.Status = ServiceStatus.Starting;
+            AddLog(LogLevel.Info, $"🚀 Démarrage de {service.Name}...");
+
+            try
+            {
+                var result = await _dockerService.StartSingleServiceAsync(service.ContainerName);
+                
+                if (result.Success)
+                {
+                    await Task.Delay(2000);
+                    await RefreshStatusAsync();
+                }
+                else
+                {
+                    service.Status = ServiceStatus.Error;
+                    service.StatusMessage = result.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                service.Status = ServiceStatus.Error;
+                service.StatusMessage = ex.Message;
+                AddLog(LogLevel.Error, $"Erreur: {ex.Message}");
+            }
+            finally
+            {
+                service.IsActionInProgress = false;
+            }
+        }
+
+        private async Task StopSingleServiceAsync(ServiceInfo service)
+        {
+            if (service.IsActionInProgress) return;
+
+            service.IsActionInProgress = true;
+            service.Status = ServiceStatus.Stopping;
+            AddLog(LogLevel.Info, $"⏹️ Arrêt de {service.Name}...");
+
+            try
+            {
+                var result = await _dockerService.StopSingleServiceAsync(service.ContainerName);
+                
+                if (result.Success)
+                {
+                    service.Status = ServiceStatus.Stopped;
+                    service.StatusMessage = "Arrêté";
+                    await RefreshStatusAsync();
+                }
+                else
+                {
+                    service.Status = ServiceStatus.Error;
+                    service.StatusMessage = result.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                service.Status = ServiceStatus.Error;
+                service.StatusMessage = ex.Message;
+                AddLog(LogLevel.Error, $"Erreur: {ex.Message}");
+            }
+            finally
+            {
+                service.IsActionInProgress = false;
+            }
         }
 
         private async Task InitializeAsync()

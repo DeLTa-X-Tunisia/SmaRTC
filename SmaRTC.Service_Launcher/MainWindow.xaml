@@ -122,6 +122,7 @@
                                                 <ColumnDefinition Width="50"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="80"/>
                                             </Grid.ColumnDefinitions>
 
@@ -148,8 +149,58 @@
                                                        VerticalAlignment="Center" FontSize="11"
                                                        Margin="0,0,12,0"/>
 
+                                            <!-- Individual Start/Stop Buttons -->
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" 
+                                                        VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <!-- Start Button -->
+                                                <Button Command="{Binding StartCommand}"
+                                                        IsEnabled="{Binding CanStart}"
+                                                        ToolTip="Démarrer ce service"
+                                                        Padding="8,4" Margin="0,0,4,0"
+                                                        MinWidth="36">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding CanStart}" Value="True">
+                                                                    <Setter Property="Background" Value="#4CAF50"/>
+                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding CanStart}" Value="False">
+                                                                    <Setter Property="Background" Value="#444444"/>
+                                                                    <Setter Property="Foreground" Value="#888888"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="▶" FontSize="12"/>
+                                                </Button>
+                                                
+                                                <!-- Stop Button -->
+                                                <Button Command="{Binding StopCommand}"
+                                                        IsEnabled="{Binding CanStop}"
+                                                        ToolTip="Arrêter ce service"
+                                                        Padding="8,4"
+                                                        MinWidth="36">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding CanStop}" Value="True">
+                                                                    <Setter Property="Background" Value="#F44336"/>
+                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding CanStop}" Value="False">
+                                                                    <Setter Property="Background" Value="#444444"/>
+                                                                    <Setter Property="Foreground" Value="#888888"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="■" FontSize="12"/>
+                                                </Button>
+                                            </StackPanel>
+
                                             <!-- Status Icon -->
-                                            <Border Grid.Column="3" 
+                                            <Border Grid.Column="4" 
                                                     Background="{Binding StatusColor}" 
                                                     CornerRadius="4" Padding="8,4"
                                                     VerticalAlignment="Center">

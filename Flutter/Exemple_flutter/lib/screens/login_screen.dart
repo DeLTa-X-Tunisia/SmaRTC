@@ -68,13 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       // Inscription (ignore si existe déjà)
-      await client.registerAsync(username, password);
+      final (regSuccess, regMsg) = await client.registerAsync(username, password);
+      // On continue même si l'inscription échoue (utilisateur peut déjà exister)
 
       // Connexion
-      final loginSuccess = await client.loginAsync(username, password);
+      final (loginSuccess, loginMsg) = await client.loginAsync(username, password);
       if (!loginSuccess) {
         setState(() {
-          _errorMessage = 'Échec de la connexion. Vérifiez vos identifiants.';
+          _errorMessage = loginMsg;
           _isLoading = false;
         });
         return;
@@ -84,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final hubConnected = await client.connectToHubAsync();
       if (!hubConnected) {
         setState(() {
-          _errorMessage = 'Impossible de se connecter au serveur SignalR.';
+          _errorMessage = 'Impossible de se connecter au serveur SignalR.\nVérifiez que le service est démarré.';
           _isLoading = false;
         });
         return;
@@ -94,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final joined = await client.joinRoomAsync(room);
       if (!joined) {
         setState(() {
-          _errorMessage = 'Impossible de rejoindre la room.';
+          _errorMessage = 'Impossible de rejoindre la room "$room".';
           _isLoading = false;
         });
         return;

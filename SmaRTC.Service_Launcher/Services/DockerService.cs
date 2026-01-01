@@ -309,6 +309,111 @@ namespace SmaRTC.Service_Launcher.Services
             }
         }
 
+        /// <summary>
+        /// Démarre un service individuel
+        /// </summary>
+        public async Task<(bool Success, string Message)> StartSingleServiceAsync(string containerName)
+        {
+            Log(LogLevel.Info, $"🚀 Démarrage de {containerName}...");
+
+            if (!await IsDockerRunningAsync())
+            {
+                var msg = "Docker Desktop n'est pas en cours d'exécution.";
+                Log(LogLevel.Error, msg);
+                return (false, msg);
+            }
+
+            if (!File.Exists(_composeFilePath))
+            {
+                var msg = $"Fichier docker-compose.yml non trouvé: {_composeFilePath}";
+                Log(LogLevel.Error, msg);
+                return (false, msg);
+            }
+
+            try
+            {
+                var workDir = Path.GetDirectoryName(_composeFilePath)!;
+                
+                var result = await RunCommandAsync("docker", 
+                    $"compose up -d {containerName}",
+                    workingDirectory: workDir,
+                    timeout: 120000);
+
+                if (result.ExitCode == 0)
+                {
+                    Log(LogLevel.Success, $"✅ {containerName} démarré avec succès!");
+                    return (true, $"{containerName} démarré");
+                }
+                else
+                {
+                    var errorMsg = ParseDockerError(result.Error, result.Output);
+                    Log(LogLevel.Error, $"❌ Erreur {containerName}: {errorMsg}");
+                    return (false, errorMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Exception lors du démarrage de {containerName}: {ex.Message}";
+                Log(LogLevel.Error, msg);
+                return (false, msg);
+            }
+        }
+
+        /// <summary>
+        /// Arrête un service individuel
+        /// </summary>
+        public async Task<(bool Success, string Message)> StopSingleServiceAsync(string containerName)
+        {
+            Log(LogLevel.Info, $"⏹️ Arrêt de {containerName}...");
+
+            if (!await IsDockerRunningAsync())
+            {
+                var msg = "Docker Desktop n'est pas en cours d'exécution.";
+                Log(LogLevel.Warning, msg);
+                return (false, msg);
+            }
+
+            try
+            {
+                var workDir = Path.GetDirectoryName(_composeFilePath)!;
+                
+                var result = await RunCommandAsync("docker", 
+                    $"compose stop {containerName}",
+                    workingDirectory: workDir,
+                    timeout: 60000);
+
+                if (result.ExitCode == 0)
+                {
+                    Log(LogLevel.Success, $"✅ {containerName} arrêté.");
+                    return (true, $"{containerName} arrêté");
+                }
+                else
+                {
+                    var errorMsg = ParseDockerError(result.Error, result.Output);
+                    Log(LogLevel.Error, $"❌ Erreur {containerName}: {errorMsg}");
+                    return (false, errorMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Exception lors de l'arrêt de {containerName}: {ex.Message}";
+                Log(LogLevel.Error, msg);
+                return (false, msg);
+            }
+        }
+
+        /// <summary>
+        /// Redémarre un service individuel
+        /// </summary>
+        public async Task<(bool Success, string Message)> RestartSingleServiceAsync(string containerName)
+        {
+            Log(LogLevel.Info, $"🔄 Redémarrage de {containerName}...");
+
+            var stopResult = await StopSingleServiceAsync(containerName);
+            await Task.Delay(1000);
+            return await StartSingleServiceAsync(containerName);
+        }
+
         private string ParseDockerError(string stderr, string stdout)
         {
             var combined = stderr + stdout;
