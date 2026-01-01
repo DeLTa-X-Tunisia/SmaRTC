@@ -15,6 +15,39 @@
 
 ---
 
+## 🎯 Qu'est-ce que SmaRTC ?
+
+**SmaRTC** (Smart Real-Time Communication) est une plateforme open-source complète pour les communications temps réel basée sur **WebRTC**. Elle permet de créer facilement des applications de :
+
+- 📹 **Visioconférence** : Appels vidéo haute qualité entre plusieurs participants
+- 📞 **Appels audio** : Communications vocales peer-to-peer ou en groupe
+- 💬 **Messagerie instantanée** : Chat en temps réel avec synchronisation
+- 📺 **Partage d'écran** : Diffusion de contenu en direct
+- 📁 **Transfert de fichiers** : Échange de données peer-to-peer sécurisé
+
+### 🌟 Pourquoi SmaRTC ?
+
+| Avantage | Description |
+|----------|-------------|
+| 🔓 **Open Source** | Code source libre sous licence MIT, modifiable et extensible |
+| 🏗️ **Architecture complète** | Tout inclus : API, signalisation, STUN/TURN, monitoring |
+| 🌐 **Multi-plateforme** | SDKs pour C#, JavaScript, Flutter, Python, Rust, Swift, Kotlin |
+| 🐳 **Docker Ready** | Déploiement en une commande avec Docker Compose |
+| 🔒 **Sécurisé** | Authentification JWT, chiffrement end-to-end WebRTC |
+| 📊 **Monitoring intégré** | Grafana + Prometheus pour la supervision |
+| ⚡ **Performant** | Optimisé pour la latence minimale et haute disponibilité |
+
+### 🔧 Cas d'utilisation
+
+- **Télémédecine** : Consultations médicales à distance
+- **E-learning** : Classes virtuelles et tutoriels en direct
+- **Support client** : Assistance vidéo en temps réel
+- **Collaboration** : Réunions d'équipe et travail à distance
+- **Gaming** : Chat vocal pour jeux multijoueurs
+- **IoT** : Streaming vidéo depuis des appareils connectés
+
+---
+
 ## 📁 Structure du Workspace
 
 ```
