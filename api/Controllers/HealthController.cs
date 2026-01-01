@@ -35,8 +35,8 @@ namespace TunRTC.API.Controllers
         /// <returns>Complete health status with component details</returns>
         [HttpGet("")]
         [HttpGet("health")]
-        [ProduceResponseType(StatusCodes.Status200OK)]
-        [ProduceResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         public async Task<ActionResult<object>> GetHealthAsync()
         {
             var result = await _healthCheckService.GetOverallHealthAsync();
@@ -59,8 +59,8 @@ namespace TunRTC.API.Controllers
         /// </remarks>
         /// <returns>Liveness status</returns>
         [HttpGet("live")]
-        [ProduceResponseType(StatusCodes.Status200OK)]
-        [ProduceResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         public async Task<ActionResult<object>> GetLivenessAsync()
         {
             var result = await _healthCheckService.GetLivenessAsync();
@@ -84,8 +84,8 @@ namespace TunRTC.API.Controllers
         /// </remarks>
         /// <returns>Readiness status</returns>
         [HttpGet("ready")]
-        [ProduceResponseType(StatusCodes.Status200OK)]
-        [ProduceResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         public async Task<ActionResult<object>> GetReadinessAsync()
         {
             var result = await _healthCheckService.GetReadinessAsync();
@@ -102,7 +102,7 @@ namespace TunRTC.API.Controllers
         /// </summary>
         /// <returns>Pong response</returns>
         [HttpGet("ping")]
-        [ProduceResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<object> Ping()
         {
             return Ok(new

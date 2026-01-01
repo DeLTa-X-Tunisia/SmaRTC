@@ -9,8 +9,6 @@ namespace TunRTC.API.Middleware
     public class RateLimitingMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IRateLimitService _rateLimitService;
-        private readonly ILogger<RateLimitingMiddleware> _logger;
 
         public RateLimitingMiddleware(RequestDelegate next)
         {
@@ -19,7 +17,7 @@ namespace TunRTC.API.Middleware
 
         public async Task InvokeAsync(HttpContext context, IRateLimitService rateLimitService, ILogger<RateLimitingMiddleware> logger)
         {
-            _logger.LogInformation("Processing request");
+            logger.LogInformation("Processing request");
             var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
             var endpoint = context.Request.Path.ToString().ToLower();
 
@@ -34,13 +32,13 @@ namespace TunRTC.API.Middleware
             var status = rateLimitService.GetStatus(userId, endpoint);
 
             // Add rate limit headers to response
-            context.Response.Headers.Add("X-RateLimit-Limit", status.Limit.ToString());
-            context.Response.Headers.Add("X-RateLimit-Remaining", Math.Max(0, status.Remaining).ToString());
-            context.Response.Headers.Add("X-RateLimit-Reset", status.ResetTime.ToString());
+            context.Response.Headers.Append("X-RateLimit-Limit", status.Limit.ToString());
+            context.Response.Headers.Append("X-RateLimit-Remaining", Math.Max(0, status.Remaining).ToString());
+            context.Response.Headers.Append("X-RateLimit-Reset", status.ResetTime.ToString());
 
             if (!isAllowed)
             {
-                _logger.LogWarning($"Rate limit exceeded for user {userId} on endpoint {endpoint}");
+                logger.LogWarning($"Rate limit exceeded for user {userId} on endpoint {endpoint}");
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 await context.Response.WriteAsJsonAsync(new
                 {

@@ -74,10 +74,10 @@ namespace TunRTC.SignalServer.Hubs
             try
             {
                 var message = new UserJoinedMessage { Username = username, ConnectionId = Context.ConnectionId };
-                var size = MessagePackSerializer.Serialize(buffer, message);
+                var serialized = MessagePackSerializer.Serialize(message);
                 
                 await Clients.OthersInGroup(sessionId)
-                    .SendAsync("UserJoined", buffer.AsMemory(0, size));
+                    .SendAsync("UserJoined", serialized.AsMemory());
             }
             finally
             {
@@ -111,10 +111,10 @@ namespace TunRTC.SignalServer.Hubs
             try
             {
                 var message = new UserLeftMessage { Username = connection.Username, ConnectionId = Context.ConnectionId };
-                var size = MessagePackSerializer.Serialize(buffer, message);
+                var serialized = MessagePackSerializer.Serialize(message);
                 
                 await Clients.OthersInGroup(sessionId)
-                    .SendAsync("UserLeft", buffer.AsMemory(0, size));
+                    .SendAsync("UserLeft", serialized.AsMemory());
             }
             finally
             {

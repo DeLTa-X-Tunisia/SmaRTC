@@ -9,6 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+    <PackageReference Include="MessagePack" Version="2.5.187" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Program.Optimized.cs" />
+    <Compile Remove="Program.Simple.cs" />
   </ItemGroup>
 
 </Project>

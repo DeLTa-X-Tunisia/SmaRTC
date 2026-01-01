@@ -31,11 +31,41 @@
 
 **SmaRTC** is a production-ready, fully containerized WebRTC platform that brings the power of real-time video and audio communication to your fingertips. Built with .NET 9, SignalR, and a touch of retro charm, it's the platform that bridges cutting-edge tech with a nostalgic nod to simpler times.
 
-**✨ New in v2.0:** Deploy 1M+ concurrent users with P2P mesh networking at near-zero cost!
+**✨ New in v2.1:** 
+- 🖥️ **Service Launcher** — WPF desktop application to manage Docker services with one click
+- 🧪 **C# SDK Demo** — Complete chat example demonstrating real-time communication
+- 🔧 **Improved Architecture** — Cleaner project structure with dedicated SDK examples folder
 
 Whether you're building a video conferencing app, a collaborative workspace, or just want to flex your WebRTC muscles, SmaRTC has you covered.
 
 </div>
+
+---
+
+## 🆕 What's New in v2.1
+
+### 🖥️ SmaRTC Service Launcher
+A modern WPF desktop application for managing all Docker services:
+- **One-click Start/Stop/Restart** for all 9 microservices
+- **Real-time status monitoring** with visual indicators
+- **Integrated logs viewer** with color-coded messages
+- **Quick access** to Swagger API documentation and Grafana dashboards
+
+### 🧪 C# SDK Examples
+Complete demonstration of the C# SDK with:
+- **Chat Client** — Real-time messaging via SignalR
+- **Launcher Application** — UI to manage multiple chat clients
+- **SDK Wrapper** — Simplified API for authentication and real-time communication
+
+### 📁 New Project Structure
+```
+SmaRTC Start/
+├── SmaRTC/                      # Core platform (API, Signal Server, Docker)
+├── SmaRTC.Service_Launcher/     # Desktop launcher for Docker services
+└── C#/                          # C# SDK examples
+    ├── Exemple_csharp/          # Chat client demonstration
+    └── Luncher_csharp/          # Example launcher UI
+```
 
 ---
 

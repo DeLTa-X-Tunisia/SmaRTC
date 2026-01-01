@@ -1,0 +1,75 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.cs text diff=csharp
+*.csproj text
+*.sln text
+*.xaml text
+*.json text
+*.xml text
+*.yml text
+*.yaml text
+*.md text
+*.txt text
+
+# Scripts
+*.ps1 text eol=crlf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Docker
+Dockerfile text
+docker-compose*.yml text
+
+# Web
+*.html text
+*.css text
+*.js text
+*.ts text
+*.jsx text
+*.tsx text
+
+# Config
+*.config text
+*.conf text
+*.ini text
+*.env text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.exe binary
+*.dll binary
+*.pdb binary
+*.zip binary
+*.tar.gz binary
+
+# Flutter/Dart
+*.dart text
+pubspec.yaml text
+pubspec.lock text
+
+# Python
+*.py text diff=python
+requirements.txt text
+
+# Rust
+*.rs text diff=rust
+Cargo.toml text
+
+# Swift
+*.swift text diff=swift
+
+# Kotlin
+*.kt text diff=kotlin
+*.kts text
+
+# Documentation
+*.pdf binary
+*.doc binary
+*.docx binary
