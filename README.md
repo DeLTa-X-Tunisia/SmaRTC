@@ -75,6 +75,10 @@ SmaRTC/                          ← Dépôt racine
 │   ├── Exemple_flutter/         → Application Flutter de chat
 │   └── Luncher_flutter/         → Launcher C# pour Flutter
 │
+├── 📂 TypeScript/               ← Exemples TypeScript
+│   ├── Exemple_TypeScript/      → Application web Node.js + Express
+│   └── Luncher_TypeScript/      → Launcher WPF C#
+│
 └── 📂 SmaRTC.Service_Launcher/  ← Launcher principal pour Docker
 ```
 
@@ -98,7 +102,12 @@ Application Flutter moderne avec :
 - **Exemple_flutter** : Application de chat avec interface Material 3, synchronisation temps réel multi-clients
 - **Luncher_flutter** : Launcher C# avec Hot Reload/Restart, sélection de device, copie des logs
 
-### 🟣 SmaRTC.Service_Launcher
+### � TypeScript - Exemples SDK ✅ Fonctionnel
+Application web Node.js avec :
+- **Exemple_TypeScript** : App web chat Express + SignalR, interface moderne responsive
+- **Luncher_TypeScript** : Launcher WPF avec npm install/build/start automatiques
+
+### �🟣 SmaRTC.Service_Launcher
 Application WPF moderne pour :
 - Démarrer/arrêter les services Docker
 - Surveiller l'état des conteneurs en temps réel
@@ -233,7 +242,12 @@ JWT_SECRET=votre_secret_jwt_256bits
 
 ## 🔄 Changelog
 
-### v2.2 (Janvier 2026) 🎉
+### v2.3 (Janvier 2026) 🎉
+- ✅ **TypeScript Example fonctionnel** : App web Node.js + Express + SignalR
+- 🔧 **Fix CORS SignalR** : `SetIsOriginAllowed` + `AllowCredentials` pour apps web
+- 🎨 **Luncher_TypeScript** : npm install/build/start automatiques
+
+### v2.2 (Janvier 2026)
 - ✅ **Flutter Example fonctionnel** : Chat temps réel multi-clients
 - ✅ **C# Example fonctionnel** : Console chat avec SDK SignalR
 - 🔧 **Corrections SDK Flutter** :
