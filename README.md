@@ -71,6 +71,10 @@ SmaRTC/                          ← Dépôt racine
 │   ├── Exemple_csharp/          → Application console de démonstration
 │   └── Luncher_csharp/          → Launcher WPF pour les exemples
 │
+├── 📂 Flutter/                  ← Exemples Flutter
+│   ├── Exemple_flutter/         → Application Flutter de chat
+│   └── Luncher_flutter/         → Launcher C# pour Flutter
+│
 └── 📂 SmaRTC.Service_Launcher/  ← Launcher principal pour Docker
 ```
 
@@ -89,6 +93,11 @@ Démonstration du SDK C# avec :
 - **Exemple_csharp** : Application console interactive de chat
 - **Luncher_csharp** : Interface WPF pour lancer plusieurs clients
 
+### 🎯 Flutter - Exemples SDK
+Application Flutter moderne avec :
+- **Exemple_flutter** : Application de chat avec interface Material 3
+- **Luncher_flutter** : Launcher C# avec Hot Reload/Restart intégré
+
 ### 🟣 SmaRTC.Service_Launcher
 Application WPF moderne pour :
 - Démarrer/arrêter les services Docker
@@ -102,6 +111,7 @@ Application WPF moderne pour :
 ### Prérequis
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (optionnel, pour l'exemple Flutter)
 
 ### 1️⃣ Lancer les services Docker
 
@@ -135,6 +145,20 @@ dotnet run
 Ou lancez plusieurs clients avec :
 ```bash
 cd C#/Luncher_csharp
+dotnet run
+```
+
+### 4️⃣ Tester l'exemple Flutter
+
+```bash
+cd Flutter/Exemple_flutter
+flutter pub get
+flutter run -d chrome
+```
+
+Ou utilisez le launcher :
+```bash
+cd Flutter/Luncher_flutter
 dotnet run
 ```
 
