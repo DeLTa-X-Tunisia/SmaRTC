@@ -108,21 +108,21 @@ Le cœur de la plateforme WebRTC :
 - **Signal Server** : Hub SignalR pour la signalisation WebRTC temps réel
 - **Infrastructure Docker** : 9 services orchestrés (PostgreSQL, Redis, Nginx, Coturn, Janus, Grafana, Prometheus)
 
-### 🟢 C# - Exemples SDK ✅ Fonctionnel
+### 🟢 C# - Exemples SDK ✅ Prêt
 Démonstration du SDK C# avec :
 - **Exemple_csharp** : Application console interactive de chat temps réel
 - **Luncher_csharp** : Interface WPF pour lancer plusieurs clients simultanément
 
-### 🎯 Flutter - Exemples SDK ✅ Fonctionnel
+### 🎯 Flutter - Exemples SDK ✅ Prêt
 Application Flutter moderne avec :
 - **Exemple_flutter** : Application de chat avec interface Material 3, synchronisation temps réel multi-clients
 - **Luncher_flutter** : Launcher C# avec Hot Reload/Restart, sélection de device, copie des logs
 
-### � TypeScript - Exemples SDK ✅ Fonctionnel
+### 📘 TypeScript - Exemples SDK ✅ Prêt
 Application web Node.js avec :
 - **Exemple_TypeScript** : App web chat Express + SignalR, interface moderne responsive
 - **Luncher_TypeScript** : Launcher WPF avec npm install/build/start automatiques
-### 🐍 Python - Exemples SDK ✅ Fonctionnel
+### 🐍 Python - Exemples SDK ✅ Prêt
 Application console Python avec :
 - **Exemple_Python** : Chat console coloré avec asyncio + SignalR
 - **Luncher_Python** : Launcher WPF multi-clients, pip install automatique
