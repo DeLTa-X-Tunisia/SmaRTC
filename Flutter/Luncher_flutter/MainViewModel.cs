@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -24,6 +25,7 @@ public partial class MainViewModel : ObservableObject
     private Process? _flutterProcess;
     private readonly StringBuilder _logBuilder = new();
     private string _flutterExecutable = "flutter";
+    private bool _useCmd = true; // Utiliser cmd /c pour éviter les problèmes Git
 
     [ObservableProperty]
     private string _flutterProjectPath = "";
@@ -39,6 +41,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private Brush _flutterStatusColor = Brushes.Orange;
+
+    [ObservableProperty]
+    private string _flutterErrorDetail = "";
 
     [ObservableProperty]
     private ObservableCollection<FlutterDevice> _devices = new();
@@ -91,6 +96,11 @@ public partial class MainViewModel : ObservableObject
             await GetFlutterVersionAsync();
             await RefreshDevicesAsync();
         }
+        else
+        {
+            // Même si Flutter n'est pas "trouvé" correctement, ajouter les devices par défaut
+            AddDefaultDevices();
+        }
     }
 
     /// <summary>
@@ -100,13 +110,32 @@ public partial class MainViewModel : ObservableObject
     {
         AppendLog("🔍 Recherche de Flutter...");
 
+        // D'abord, essayer via "where flutter" qui est plus fiable sur Windows
+        try
+        {
+            var whereResult = await RunRawCommandAsync("where", "flutter");
+            if (!string.IsNullOrWhiteSpace(whereResult) && !whereResult.Contains("not find"))
+            {
+                var foundPath = whereResult.Split('\n').FirstOrDefault()?.Trim();
+                if (!string.IsNullOrEmpty(foundPath))
+                {
+                    // Flutter est dans le PATH, utiliser cmd /c pour éviter les erreurs Git
+                    _flutterExecutable = "flutter";
+                    _useCmd = true;
+                    IsFlutterFound = true;
+                    FlutterStatusText = "✅ Flutter trouvé";
+                    FlutterStatusColor = Brushes.LimeGreen;
+                    FlutterErrorDetail = "";
+                    AppendLog($"✅ Flutter trouvé: {foundPath}");
+                    return;
+                }
+            }
+        }
+        catch { }
+
         // Liste des chemins possibles pour Flutter
         var possiblePaths = new List<string>
         {
-            // Via PATH (commande par défaut)
-            "flutter",
-            "flutter.bat",
-            
             // Emplacements Windows courants
             @"C:\flutter\bin\flutter.bat",
             @"C:\src\flutter\bin\flutter.bat",
@@ -139,59 +168,36 @@ public partial class MainViewModel : ObservableObject
         // Tester chaque chemin
         foreach (var path in possiblePaths)
         {
-            if (await TestFlutterPathAsync(path))
+            if (File.Exists(path))
             {
                 _flutterExecutable = path;
+                _useCmd = false;
                 IsFlutterFound = true;
                 FlutterStatusText = "✅ Flutter trouvé";
                 FlutterStatusColor = Brushes.LimeGreen;
+                FlutterErrorDetail = "";
                 AppendLog($"✅ Flutter trouvé: {path}");
                 return;
             }
         }
-
-        // Essayer de trouver via where/which
-        try
-        {
-            var whereResult = await RunRawCommandAsync("where", "flutter");
-            if (!string.IsNullOrWhiteSpace(whereResult))
-            {
-                var foundPath = whereResult.Split('\n').FirstOrDefault()?.Trim();
-                if (!string.IsNullOrEmpty(foundPath) && await TestFlutterPathAsync(foundPath))
-                {
-                    _flutterExecutable = foundPath;
-                    IsFlutterFound = true;
-                    FlutterStatusText = "✅ Flutter trouvé";
-                    FlutterStatusColor = Brushes.LimeGreen;
-                    AppendLog($"✅ Flutter trouvé via where: {foundPath}");
-                    return;
-                }
-            }
-        }
-        catch { }
 
         // Non trouvé
         IsFlutterFound = false;
         FlutterStatusText = "❌ Flutter non trouvé";
         FlutterStatusColor = Brushes.Red;
         FlutterVersion = "Non installé";
+        FlutterErrorDetail = "Installez Flutter et ajoutez-le au PATH";
         AppendLog("❌ Flutter non trouvé! Vérifiez l'installation et le PATH.");
         AppendLog("💡 Conseil: Ajoutez le dossier flutter/bin au PATH système.");
+        AppendLog("💡 Téléchargez Flutter: https://docs.flutter.dev/get-started/install");
     }
 
     private async Task<bool> TestFlutterPathAsync(string path)
     {
         try
         {
-            // Si c'est juste "flutter", on teste directement
-            if (path == "flutter" || path == "flutter.bat")
-            {
-                var result = await RunRawCommandAsync(path, "--version");
-                return result.Contains("Flutter");
-            }
-
-            // Sinon, vérifier si le fichier existe
-            if (!File.Exists(path)) return false;
+            if (!File.Exists(path) && path != "flutter" && path != "flutter.bat") 
+                return false;
 
             var testResult = await RunRawCommandAsync(path, "--version");
             return testResult.Contains("Flutter");
@@ -233,17 +239,83 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            var result = await RunCommandAsync(_flutterExecutable, "--version", waitForExit: true);
+            var result = await RunFlutterCommandAsync("--version", waitForExit: true);
             var lines = result.Split('\n');
-            if (lines.Length > 0 && lines[0].Contains("Flutter"))
+            
+            // Ignorer les erreurs Git et chercher la ligne de version
+            foreach (var line in lines)
             {
-                FlutterVersion = lines[0].Trim();
+                if (line.Contains("Flutter") && (line.Contains(".") || line.Contains("stable") || line.Contains("beta")))
+                {
+                    FlutterVersion = line.Trim();
+                    return;
+                }
+            }
+            
+            // Si erreur Git détectée
+            if (result.Contains("not a clone") || result.Contains("requires Git"))
+            {
+                FlutterVersion = "⚠️ Problème Git détecté";
+                FlutterErrorDetail = "Votre Flutter a un problème Git, mais devrait fonctionner";
+                AppendLog("⚠️ Flutter a un problème Git - certaines fonctions peuvent être limitées");
+                AppendLog("💡 Solution: git clone -b stable https://github.com/flutter/flutter.git");
             }
         }
         catch
         {
             FlutterVersion = "Version inconnue";
         }
+    }
+
+    /// <summary>
+    /// Exécute une commande Flutter en utilisant cmd /c pour éviter les problèmes de PATH
+    /// </summary>
+    private async Task<string> RunFlutterCommandAsync(string arguments, bool waitForExit = false, string? workingDir = null)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            Arguments = $"/c flutter {arguments}",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        if (!string.IsNullOrEmpty(workingDir))
+        {
+            psi.WorkingDirectory = workingDir;
+        }
+
+        using var process = new Process { StartInfo = psi };
+        var output = new StringBuilder();
+
+        process.OutputDataReceived += (s, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                output.AppendLine(e.Data);
+            }
+        };
+
+        process.ErrorDataReceived += (s, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                output.AppendLine(e.Data);
+            }
+        };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        if (waitForExit)
+        {
+            await process.WaitForExitAsync();
+        }
+
+        return output.ToString();
     }
 
     [RelayCommand]
@@ -266,7 +338,8 @@ public partial class MainViewModel : ObservableObject
     {
         if (!IsFlutterFound)
         {
-            AppendLog("❌ Flutter non trouvé - impossible de lister les devices");
+            AppendLog("⚠️ Flutter non détecté - utilisation des devices par défaut");
+            AddDefaultDevices();
             return;
         }
 
@@ -275,7 +348,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var result = await RunCommandAsync(_flutterExecutable, "devices", waitForExit: true);
+            var result = await RunFlutterCommandAsync("devices", waitForExit: true);
             ParseDevices(result);
             
             if (Devices.Count > 0)
@@ -297,11 +370,12 @@ public partial class MainViewModel : ObservableObject
 
     private void AddDefaultDevices()
     {
+        Devices.Clear();
         Devices.Add(new FlutterDevice { Id = "chrome", Name = "Chrome (web)", Platform = "web-javascript", Icon = "🌐" });
         Devices.Add(new FlutterDevice { Id = "edge", Name = "Edge (web)", Platform = "web-javascript", Icon = "🌐" });
         Devices.Add(new FlutterDevice { Id = "windows", Name = "Windows (desktop)", Platform = "windows-x64", Icon = "🖥️" });
         
-        if (Devices.Count > 0)
+        if (Devices.Count > 0 && SelectedDevice == null)
         {
             SelectedDevice = Devices[0];
         }
@@ -362,12 +436,6 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task LaunchFlutterAsync()
     {
-        if (!IsFlutterFound)
-        {
-            AppendLog("❌ Flutter non trouvé - impossible de lancer");
-            return;
-        }
-
         if (string.IsNullOrEmpty(FlutterProjectPath) || !Directory.Exists(FlutterProjectPath))
         {
             AppendLog("❌ Chemin du projet invalide");
@@ -386,14 +454,15 @@ public partial class MainViewModel : ObservableObject
 
         AppendLog($"🚀 Lancement sur {SelectedDevice.Name}...");
         AppendLog($"📂 Projet: {FlutterProjectPath}");
-        AppendLog($"🔧 Commande: {_flutterExecutable} run -d {SelectedDevice.Id}");
+        AppendLog($"🔧 Commande: cmd /c flutter run -d {SelectedDevice.Id}");
 
         try
         {
+            // Utiliser cmd /c flutter pour éviter les problèmes de PATH et Git
             var startInfo = new ProcessStartInfo
             {
-                FileName = _flutterExecutable,
-                Arguments = $"run -d {SelectedDevice.Id}",
+                FileName = "cmd.exe",
+                Arguments = $"/c flutter run -d {SelectedDevice.Id}",
                 WorkingDirectory = FlutterProjectPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -416,7 +485,10 @@ public partial class MainViewModel : ObservableObject
             {
                 if (!string.IsNullOrEmpty(e.Data))
                 {
-                    App.Current.Dispatcher.Invoke(() => AppendLog($"⚠️ {e.Data}"));
+                    // Ignorer les erreurs Git mais les afficher quand même en warning
+                    var prefix = e.Data.Contains("not a clone") || e.Data.Contains("requires Git") 
+                        ? "⚠️ [Git] " : "⚠️ ";
+                    App.Current.Dispatcher.Invoke(() => AppendLog($"{prefix}{e.Data}"));
                 }
             };
 
@@ -501,43 +573,36 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task RunDoctorAsync()
     {
-        if (!IsFlutterFound)
-        {
-            AppendLog("❌ Flutter non trouvé");
-            return;
-        }
-        AppendLog("🩺 flutter doctor...");
-        var result = await RunCommandAsync(_flutterExecutable, "doctor -v", waitForExit: true);
+        AppendLog("🩺 flutter doctor -v...");
+        var result = await RunFlutterCommandAsync("doctor -v", waitForExit: true);
         AppendLog(result);
     }
 
     [RelayCommand]
     private async Task RunPubGetAsync()
     {
-        if (!IsFlutterFound)
+        if (string.IsNullOrEmpty(FlutterProjectPath)) 
         {
-            AppendLog("❌ Flutter non trouvé");
+            AppendLog("❌ Veuillez d'abord sélectionner un projet Flutter");
             return;
         }
-        if (string.IsNullOrEmpty(FlutterProjectPath)) return;
         
         AppendLog("📦 flutter pub get...");
-        var result = await RunCommandAsync(_flutterExecutable, "pub get", FlutterProjectPath, waitForExit: true);
+        var result = await RunFlutterCommandAsync("pub get", waitForExit: true, FlutterProjectPath);
         AppendLog(result);
     }
 
     [RelayCommand]
     private async Task RunCleanAsync()
     {
-        if (!IsFlutterFound)
+        if (string.IsNullOrEmpty(FlutterProjectPath))
         {
-            AppendLog("❌ Flutter non trouvé");
+            AppendLog("❌ Veuillez d'abord sélectionner un projet Flutter");
             return;
         }
-        if (string.IsNullOrEmpty(FlutterProjectPath)) return;
         
         AppendLog("🧹 flutter clean...");
-        var result = await RunCommandAsync(_flutterExecutable, "clean", FlutterProjectPath, waitForExit: true);
+        var result = await RunFlutterCommandAsync("clean", waitForExit: true, FlutterProjectPath);
         AppendLog(result);
     }
 
@@ -554,20 +619,29 @@ public partial class MainViewModel : ObservableObject
         if (dialog.ShowDialog() == true)
         {
             var path = dialog.FileName;
-            if (await TestFlutterPathAsync(path))
-            {
-                _flutterExecutable = path;
-                IsFlutterFound = true;
-                FlutterStatusText = "✅ Flutter trouvé";
-                FlutterStatusColor = Brushes.LimeGreen;
-                AppendLog($"✅ Flutter configuré manuellement: {path}");
-                await GetFlutterVersionAsync();
-                await RefreshDevicesAsync();
-            }
-            else
-            {
-                AppendLog($"❌ Le fichier sélectionné n'est pas un exécutable Flutter valide");
-            }
+            _flutterExecutable = path;
+            _useCmd = false;
+            IsFlutterFound = true;
+            FlutterStatusText = "✅ Flutter trouvé";
+            FlutterStatusColor = Brushes.LimeGreen;
+            FlutterErrorDetail = "";
+            AppendLog($"✅ Flutter configuré manuellement: {path}");
+            await GetFlutterVersionAsync();
+            await RefreshDevicesAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void CopyLogs()
+    {
+        try
+        {
+            Clipboard.SetText(LogOutput);
+            AppendLog("📋 Logs copiés dans le presse-papiers!");
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"❌ Erreur lors de la copie: {ex.Message}");
         }
     }
 
